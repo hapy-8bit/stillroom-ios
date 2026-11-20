@@ -1,0 +1,37 @@
+{
+  "checkedDate": "2026-11-07",
+  "scope": "Only approved fluid/rain/trails/name/meters typography. Deferred iron font is not added. Existing InstrumentSerif-Italic, DMSans-Regular and DMMono-Regular are reused.",
+  "fonts": [
+    {
+      "file": "CormorantGaramond-MediumItalic.ttf",
+      "postScriptName": "CormorantGaramond-MediumItalic",
+      "weight": 500,
+      "style": "italic",
+      "officialFontURL": "https://raw.githubusercontent.com/CatharsisFonts/Cormorant/master/fonts/ttf/CormorantGaramond-MediumItalic.ttf",
+      "officialMetadataURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/METADATA.pb",
+      "bytes": 707464,
+      "sha256": "cd32b8503bbd972f67a26ca39ba52ef3926706eb6725975fa7ebf9d105f461c0",
+      "license": "OFL-1.1",
+      "licenseFile": "CormorantGaramond-OFL.txt",
+      "officialLicenseURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/OFL.txt",
+      "licenseSHA256": "60700d351cac4650c51f3f9db318d2a420f8b45052dba2715eb5fec41f0f6956",
+      "origin": "Unmodified official static TTF, no instancing/subsetting/name edits; PostScript name verified with macOS CoreText."
+    },
+    {
+      "file": "SpaceGrotesk-Medium.ttf",
+      "postScriptName": "SpaceGrotesk-Medium",
+      "weight": 500,
+      "style": "normal",
+      "officialFontURL": "https://raw.githubusercontent.com/floriankarsten/space-grotesk/master/fonts/ttf/static/SpaceGrotesk-Medium.ttf",
+      "officialMetadataURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/spacegrotesk/METADATA.pb",
+      "bytes": 116664,
+      "sha256": "3183b7eb0b4241476360e2cd8e527868616cc16d3ce332c4376505989b772b44",
+      "license": "OFL-1.1",
+      "licenseFile": "SpaceGrotesk-OFL.txt",
+      "officialLicenseURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/spacegrotesk/OFL.txt",
+      "licenseSHA256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+      "origin": "Unmodified official static TTF, no instancing/subsetting/name edits; PostScript name verified with macOS CoreText."
+    }
+  ],
+  "fontBytes": 824128
+}

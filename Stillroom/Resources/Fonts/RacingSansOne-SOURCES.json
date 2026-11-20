@@ -1,0 +1,25 @@
+{
+  "checkedDate": "2026-11-07",
+  "font": {
+    "file": "RacingSansOne-Regular.ttf",
+    "bytes": 145796,
+    "sha256": "8b5cada83e3e4692f624f1b583a069b34e457e07a4210ceddbb1133b3383673e",
+    "postScriptName": "RacingSansOne-Regular",
+    "familyName": "Racing Sans One",
+    "license": "OFL-1.1",
+    "officialRepositoryURL": "https://github.com/google/fonts",
+    "officialFontURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/racingsansone/RacingSansOne-Regular.ttf",
+    "officialMetadataURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/racingsansone/METADATA.pb",
+    "familySourceRepositoryURL": "https://github.com/googlefonts/racingsansone",
+    "familySourceCommitReportedByMetadata": "4ca09691301569ac47f3f274ff1b2138653e6e2a",
+    "origin": "Downloaded unmodified from the official Google Fonts repository. The byte hash identifies this download; the main-branch URL can change.",
+    "nativeRegistrationCheck": "CoreText registered this file and returned RacingSansOne-Regular as its PostScript name. At 46 logical points, One Tape has typographic width 191.268 and glyph ink height 37.398. This is a host typography check, not iPhone visual acceptance."
+  },
+  "license": {
+    "file": "RacingSansOne-OFL.txt",
+    "bytes": 4573,
+    "officialURL": "https://raw.githubusercontent.com/google/fonts/main/ofl/racingsansone/OFL.txt",
+    "sha256": "cdcc959c42ab255b4cea4bd82f2db5c24a2da7ecabe615d02d5a5dba3716e446",
+    "copyright": "Copyright (c) 2012, Pablo Impallari and Rodrigo Fuenzalida, with Reserved Font Name Racing Sans."
+  }
+}

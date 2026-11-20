@@ -1,0 +1,33 @@
+{
+  "checkedDate": "2026-11-07",
+  "scope": "Native resource import for approved fluid/rain/trails/name/meters only. No demo music, title, timers or movie files are imported.",
+  "assets": [
+    {
+      "asset": "OneTapeScreenRainPhoto",
+      "file": "Stillroom/Resources/Assets.xcassets/OneTapeScreenRainPhoto.imageset/OneTapeScreenRainPhoto.jpg",
+      "sourcePath": "/Users/liuhang/.codex/visualizations/2026/11/07/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/other-screen-studies/rain.jpg",
+      "pixelWidth": 1000,
+      "pixelHeight": 627,
+      "bytes": 65912,
+      "sha256": "484da99562679e2c29aee08c1bf47e50179214ba41baa2e7975d6d93ea21c52d",
+      "origin": "Original image_gen artwork approved in the standalone material study; copied existing JPEG byte-for-byte. Not extracted from the reference application.",
+      "imageBoundary": "Static base photograph only; runtime motion is authored separately using the shared playback visual clock."
+    },
+    {
+      "asset": "OneTapeScreenTrailsPhoto",
+      "file": "Stillroom/Resources/Assets.xcassets/OneTapeScreenTrailsPhoto.imageset/OneTapeScreenTrailsPhoto.jpg",
+      "sourcePath": "/Users/liuhang/.codex/visualizations/2026/11/07/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/other-screen-studies/trails.jpg",
+      "pixelWidth": 1000,
+      "pixelHeight": 627,
+      "bytes": 24988,
+      "sha256": "64950c0ea1b2d7e7416c2bd31c790e7ea3c63d17e1734efff2dc8a97eb066cca",
+      "origin": "Original image_gen artwork approved in the standalone material study; copied existing JPEG byte-for-byte. Not extracted from the reference application.",
+      "imageBoundary": "Static base photograph only; runtime motion is authored separately using the shared playback visual clock."
+    }
+  ],
+  "reusedAsset": "OneTapeScreenFluidPhoto",
+  "artProvenance": "Rain uses selected rain-v3.png derivative rain.jpg, not rejected early rain.png/rain-v1/rain-v2. Trails uses the approved original trails.jpg. Research references are atmospheric only; these are newly generated original compositions.",
+  "researchEvidence": "/Users/liuhang/.codex/visualizations/2026/11/07/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/other-screen-studies/reference-notes.json",
+  "fontsManifest": "Fonts/approved-screen-font-sources.json",
+  "validationBoundary": "Resource and typography import; runtime routing, Xcode integration, layout/render and playback validation remain in the parent implementation task."
+}

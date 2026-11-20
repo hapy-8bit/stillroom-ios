@@ -1,0 +1,41 @@
+Bundled fonts — unmodified font files
+
+GeistPixel-Square.ttf
+Copyright 2026 The Geist Pixel Project Authors (https://github.com/vercel/geistpixel-font.git)
+
+GeistMono-Regular.ttf
+Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font.git)
+
+These fonts are licensed under the SIL Open Font License, Version 1.1.
+The complete official license texts are included in Geist-OFL.txt and GeistPixel-OFL.txt.
+Embedded copyright and licensing metadata have been preserved.
+
+Screen material study fonts — unmodified official files
+
+InstrumentSerif-Regular.ttf; InstrumentSerif-Italic.ttf
+Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)
+License: SIL Open Font License 1.1; complete text: InstrumentSerif-OFL.txt.
+
+DMSans-Regular.ttf; DMSans-Medium.ttf
+Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
+License: SIL Open Font License 1.1; complete text: DMSans-OFL.txt.
+
+DMMono-Regular.ttf
+Copyright 2020 The DM Mono Project Authors (https://www.github.com/googlefonts/dm-mono)
+License: SIL Open Font License 1.1; complete text: DMMono-OFL.txt.
+
+All five TTF files are unmodified official downloads. Embedded name/copyright/license
+metadata is preserved. Exact sources, hashes and PostScript names are recorded in
+screen-material-font-sources.json.
+
+Approved five-screen fonts — unmodified official static files
+
+CormorantGaramond-MediumItalic.ttf
+Copyright 2015 The Cormorant Project Authors (github.com/CatharsisFonts/Cormorant)
+License: SIL Open Font License 1.1; complete text: CormorantGaramond-OFL.txt.
+
+SpaceGrotesk-Medium.ttf
+Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+License: SIL Open Font License 1.1; complete text: SpaceGrotesk-OFL.txt.
+
+Exact official sources, hashes, and PostScript names: approved-screen-font-sources.json.

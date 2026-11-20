@@ -1,0 +1,47 @@
+{
+  "checkedDate": "2026-11-06",
+  "fonts": [
+    {
+      "file": "GeistPixel-Square.ttf",
+      "bytes": 94764,
+      "sha256": "c1fbf7316997c1749857708998958e8ca0343416b3f8d2c7156d634a9520e997",
+      "postScriptName": "GeistPixel-Square",
+      "familyName": "Geist Pixel",
+      "version": "Version 1.000; ttfautohint (v1.8.4.16-eb64)",
+      "copyright": "Copyright 2026 The Geist Pixel Project Authors (https://github.com/vercel/geistpixel-font.git)",
+      "license": "OFL-1.1",
+      "officialRepositoryURL": "https://github.com/vercel/geist-font",
+      "officialFontURL": "https://raw.githubusercontent.com/vercel/geist-font/main/fonts/GeistPixel/ttf/GeistPixel-Square.ttf",
+      "origin": "Unmodified bytes extracted from the local reference-app archive; the current upstream file may be a newer build.",
+      "unitsPerEm": 1000,
+      "containsChineseSampleGlyphs": false
+    },
+    {
+      "file": "GeistMono-Regular.ttf",
+      "bytes": 148516,
+      "sha256": "42d8ad2e610238e64e8abfcde3037c63f7850a73928742b7ab7229d897bcb155",
+      "postScriptName": "GeistMono-Regular",
+      "familyName": "Geist Mono",
+      "version": "Version 1.700; ttfautohint (v1.8.4.16-eb64)",
+      "copyright": "Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font.git)",
+      "license": "OFL-1.1",
+      "officialRepositoryURL": "https://github.com/vercel/geist-font",
+      "officialFontURL": "https://raw.githubusercontent.com/vercel/geist-font/main/fonts/GeistMono/ttf/GeistMono-Regular.ttf",
+      "origin": "Unmodified bytes extracted from the local reference-app archive; the current upstream file may be a newer build.",
+      "unitsPerEm": 1000,
+      "containsChineseSampleGlyphs": false
+    }
+  ],
+  "licenses": [
+    {
+      "file": "Geist-OFL.txt",
+      "officialURL": "https://raw.githubusercontent.com/vercel/geist-font/main/OFL.txt",
+      "sha256": "021caa749f89fecd7c2e40a50499de29e84d2bc19251659b47d499c2fbfffc17"
+    },
+    {
+      "file": "GeistPixel-OFL.txt",
+      "officialURL": "https://raw.githubusercontent.com/vercel/geist-pixel-font/main/OFL.txt",
+      "sha256": "bdf815a5ea761ebeb599674fc4583fb392b4b037dc85ec6bb51f676392a15ced"
+    }
+  ]
+}

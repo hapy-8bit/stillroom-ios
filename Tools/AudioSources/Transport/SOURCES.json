@@ -1,0 +1,41 @@
+{
+  "author": "Joseph SARDIN",
+  "title": "Cassette Player: Play and Pause",
+  "sourceID": "BigSoundBank 0570",
+  "sourcePage": "https://bigsoundbank.com/cassette-player-play-and-pause-s0570.html",
+  "downloadURL": "https://bigsoundbank.com/UPLOAD/bwf-en/0570.wav",
+  "downloadSHA256": "c5d7662261a8fe7f2aca097498f90cc5bca0eec700f154023c40a9d9ba4eba08",
+  "downloadedOn": "2026-11-07",
+  "license": "CC0 1.0",
+  "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "licenseEvidence": "The source page marks this recording CC0 and explicitly permits editing, redistribution and commercial use in apps; full original download retained only under ignored Build. These two short excerpts are reproducible processing inputs, not runtime resources.",
+  "excerpts": [
+    {
+      "file": "Cassette0570Play-CC0.wav",
+      "sha256": "4c61ef7b18862a8cc84c4f24b9df884cdfc938574a7ba7a39f493d0c0aab55e6",
+      "sourceStartFrame": 2256,
+      "sourceEndFrameExclusive": 18720,
+      "sourceStartSeconds": 0.047,
+      "sourceEndSeconds": 0.39,
+      "sourceSampleRate": 48000
+    },
+    {
+      "file": "Cassette0570Pause-CC0.wav",
+      "sha256": "c1aed72caae48b949dcdb0b93b302ca46f852bbd07cfae8aaec82ed3d37c2fc5",
+      "sourceStartFrame": 144480,
+      "sourceEndFrameExclusive": 162000,
+      "sourceStartSeconds": 3.01,
+      "sourceEndSeconds": 3.375,
+      "sourceSampleRate": 48000
+    },
+    {
+      "file": "Cassette0570TrackStep-CC0.wav",
+      "sha256": "84f9704f47b0c15e800a8b5daa512feec7e20e652a95035aea630293963d7c86",
+      "sourceStartFrame": 2256,
+      "sourceEndFrameExclusive": 9840,
+      "sourceStartSeconds": 0.047,
+      "sourceEndSeconds": 0.205,
+      "sourceSampleRate": 48000
+    }
+  ]
+}

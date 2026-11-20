@@ -1,0 +1,54 @@
+{
+  "purpose": "Real cassette play-latch, pause-key and short track-step mechanical UI cues.",
+  "authoring": "Edited CC0 field recording by Joseph SARDIN / BigSoundBank, sound 0570. Source-frame excerpts, hashes and license are retained in Tools/AudioSources/Transport.",
+  "source": {
+    "author": "Joseph SARDIN",
+    "title": "Cassette Player: Play and Pause",
+    "sourcePage": "https://bigsoundbank.com/cassette-player-play-and-pause-s0570.html",
+    "license": "CC0 1.0",
+    "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "downloadSHA256": "c5d7662261a8fe7f2aca097498f90cc5bca0eec700f154023c40a9d9ba4eba08"
+  },
+  "processing": "85 Hz high pass, two 6.8 kHz low-pass stages, quiet-gap expansion, windowed-sinc 48k-to-44.1k resampling, 2/12 ms endpoint ramps and bounded peak normalization. Original stroke timing retained.",
+  "reproduce": "python3 Tools/generate-transport-sounds.py",
+  "serviceGain": 0.65,
+  "boundary": "Real recorded cassette mechanism; not the original Cassette application's audio or a verified physical-device loudness match.",
+  "samples": [
+    {
+      "filename": "OneTapePlayLatch.wav",
+      "sourceExcerpt": "Cassette0570Play-CC0.wav",
+      "durationSeconds": 0.3429931972789116,
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "peakDBFS": -6.021,
+      "rmsDBFS": -26.409,
+      "maximum20msRMSDBFS": -17.248,
+      "sha256": "dac8e8d036608803e2db99008f36c2adf95984a40db90eb3e52c94b3b5111a3b"
+    },
+    {
+      "filename": "OneTapePauseRelease.wav",
+      "sourceExcerpt": "Cassette0570Pause-CC0.wav",
+      "durationSeconds": 0.36498866213151926,
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "peakDBFS": -6.745,
+      "rmsDBFS": -28.848,
+      "maximum20msRMSDBFS": -20.665,
+      "sha256": "2e1e3fab0c125ed9707e232c62ca9522fe47d503ee93640ba6f3bd057c7f8b9b"
+    },
+    {
+      "filename": "OneTapeTrackStep.wav",
+      "sourceExcerpt": "Cassette0570TrackStep-CC0.wav",
+      "durationSeconds": 0.1580045351473923,
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "peakDBFS": -7.535,
+      "rmsDBFS": -25.212,
+      "maximum20msRMSDBFS": -18.762,
+      "sha256": "7d96aa5794fa9938dad930dd4224c3920e50e06a66e9e6f19849d5c35da4bde9"
+    }
+  ]
+}

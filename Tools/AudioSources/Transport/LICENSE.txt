@@ -1,0 +1,7 @@
+Cassette Player: Play and Pause (BigSoundBank sound 0570)
+Author: Joseph SARDIN / LaSonotheque / BigSoundBank
+Source: https://bigsoundbank.com/cassette-player-play-and-pause-s0570.html
+License: CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/
+Retrieved: 2026-11-07
+
+The author marks this recording CC0 and permits editing, redistribution and commercial use in apps. Attribution is voluntarily preserved here and in the bundled PROVENANCE.json. The included WAV files are lossless excerpts at the exact source-frame ranges in SOURCES.json; no original Cassette application recording is used. The shorter TrackStep excerpt keeps only the first key contact for explicit previous/next taps.

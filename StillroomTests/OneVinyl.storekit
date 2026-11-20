@@ -1,0 +1,32 @@
+{
+  "identifier" : "D7E8926B-234F-4957-BAB0-B69328F773F5",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "9.90",
+      "familyShareable" : false,
+      "internalID" : "100001",
+      "localizations" : [
+        { "description" : "一次性购买 One Vinyl Pro。", "displayName" : "One Vinyl Pro", "locale" : "zh_CN" },
+        { "description" : "A one-time One Vinyl Pro purchase.", "displayName" : "One Vinyl Pro", "locale" : "en_US" }
+      ],
+      "productID" : "OneVinyl_1",
+      "referenceName" : "One Vinyl Pro",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "100002",
+      "localizations" : [
+        { "description" : "Test unrelated-product filtering.", "displayName" : "Unrelated Test Product", "locale" : "en_US" }
+      ],
+      "productID" : "test.unrelated",
+      "referenceName" : "Unrelated Test Product",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : { "_failTransactionsEnabled" : false, "_locale" : "zh_CN", "_storefront" : "CHN" },
+  "subscriptionGroups" : [],
+  "version" : { "major" : 3, "minor" : 0 }
+}

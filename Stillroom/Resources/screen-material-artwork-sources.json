@@ -1,0 +1,66 @@
+{
+  "checkedDate": "2026-11-07",
+  "purpose": "Approved full-LCD material concept photographs",
+  "referencePreview": "/Users/liuhang/.codex/visualizations/2026/11/07/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/screen-material-study.source.html",
+  "assets": [
+    {
+      "assetName": "OneTapeScreenDunesPhoto",
+      "sourcePath": "/Users/liuhang/.codex/generated_images/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/exec-f0768457-dd4d-41a4-8369-81bf8659f91a.png",
+      "sourceSHA256": "2e71ef7e4d51571e9762dde97b6a0608af86dfed3b67cc01dbf686618168d09e",
+      "sourcePixels": [
+        1586,
+        992
+      ],
+      "productPath": "Stillroom/Resources/Assets.xcassets/OneTapeScreenDunesPhoto.imageset/OneTapeScreenDunesPhoto.jpg",
+      "productSHA256": "9364496f8a910c2ce64957df8a781831bf471f7eb2c498f25f1cfd9b0afdb513",
+      "productBytes": 171198,
+      "transform": "sips proportional resize to width1152 (no crop), JPEG quality90; no creative image edits.",
+      "sourceType": "User-approved built-in ImageGen original; generated artwork, not recovered original app material.",
+      "productPixels": [
+        1152,
+        720
+      ],
+      "catalogScale": 3
+    },
+    {
+      "assetName": "OneTapeScreenIronPhoto",
+      "sourcePath": "/Users/liuhang/.codex/generated_images/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/exec-bd1745e8-8b17-4bed-a04d-79fc4bf4f505.png",
+      "sourceSHA256": "2a3c2d1d414a8906959c7bd14d26541962832b6d13dcd086e34a0964e89eef02",
+      "sourcePixels": [
+        1586,
+        992
+      ],
+      "productPath": "Stillroom/Resources/Assets.xcassets/OneTapeScreenIronPhoto.imageset/OneTapeScreenIronPhoto.jpg",
+      "productSHA256": "fc86b83ae0199103807990b693d1ce31ab8b1728ebc389227e0a9afd504aaeeb",
+      "productBytes": 242754,
+      "transform": "sips proportional resize to width1152 (no crop), JPEG quality90; no creative image edits.",
+      "sourceType": "User-approved built-in ImageGen original; generated artwork, not recovered original app material.",
+      "productPixels": [
+        1152,
+        720
+      ],
+      "catalogScale": 3
+    },
+    {
+      "assetName": "OneTapeScreenFluidPhoto",
+      "sourcePath": "/Users/liuhang/.codex/generated_images/01a1b36e-e377-7db0-9c5e-da2e7f8867eb/exec-13467488-77cc-4d7c-94f6-fc0eaccdd576.png",
+      "sourceSHA256": "e6e9d86127c8cc30cce3f329508955c5a989de337decf6283323550e196b39e4",
+      "sourcePixels": [
+        1586,
+        992
+      ],
+      "productPath": "Stillroom/Resources/Assets.xcassets/OneTapeScreenFluidPhoto.imageset/OneTapeScreenFluidPhoto.jpg",
+      "productSHA256": "d93b0bc9cf86152f842a6a8f0597bba9659c47ce375a8082bd137e0f95113052",
+      "productBytes": 123872,
+      "transform": "sips proportional resize to width1152 (no crop), JPEG quality90; no creative image edits.",
+      "sourceType": "User-approved built-in ImageGen original; generated artwork, not recovered original app material.",
+      "productPixels": [
+        1152,
+        720
+      ],
+      "catalogScale": 3
+    }
+  ],
+  "totalPhotoBytes": 537824,
+  "qualityBoundary": "1152px width exceeds 264 logical points at3x; JPEG90 optimization only. No crop, recolor, generative edits or source-PNG changes."
+}
