@@ -4,46 +4,91 @@ struct OneTapeBodyCustomization: View {
     @Binding var appearance: OneTapeAppearance
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("机身")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.6))
-                .accessibilityAddTraits(.isHeader)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
-                ForEach(OneTapeAppearance.BodyStyle.allCases) { style in
-                    OneTapeCustomizationTile(
-                        title: style.customizationTitle,
-                        selected: appearance.bodyMaterial == nil && appearance.bodyStyle == style,
-                        studioMarker: style != .black,
-                        identifier: "customization.body.\(style.rawValue)"
-                    ) {
-                        appearance.selectBodyStyle(style)
-                    } thumbnail: {
-                        Image(style.customizationThumbnailAsset).resizable().scaledToFit()
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeader("经典机身")
+                LazyVGrid(columns: twoColumns, spacing: 12) {
+                    ForEach(OneTapeAppearance.BodyStyle.allCases) { style in
+                        OneTapeCustomizationTile(
+                            title: style.customizationTitle,
+                            selected: appearance.bodyMaterial == nil && appearance.bodyStyle == style,
+                            studioMarker: style != .black,
+                            identifier: "customization.body.\(style.rawValue)"
+                        ) {
+                            appearance.selectBodyStyle(style)
+                        } thumbnail: {
+                            Image(style.customizationThumbnailAsset).resizable().scaledToFit()
+                        }
                     }
                 }
-                ForEach(OneTapeBodyMaterial.allCases) { material in
-                    OneTapeCustomizationTile(title: material.title,
-                        selected: appearance.bodyMaterial == material, studioMarker: false,
-                        identifier: "customization.material.\(material.rawValue)") {
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeader("特色材质")
+                LazyVGrid(columns: threeColumns, spacing: 12) {
+                    ForEach(OneTapeBodyMaterial.cassetteOriginals) { material in
+                        OneTapeCustomizationTile(
+                            title: material.title,
+                            selected: appearance.bodyMaterial == material,
+                            studioMarker: true,
+                            identifier: "customization.material.\(material.rawValue)"
+                        ) {
                             appearance.selectBodyMaterial(material)
                         } thumbnail: {
                             OneTapeMaterialPreview(material: material)
                         }
-                }
-            }
-            ScrollView(.horizontal) {
-                HStack(spacing: 4) {
-                    ForEach(OneTapeAppearance.BodyColor.allCases) { color in
-                        colorButton(color)
                     }
                 }
-                .padding(.vertical, 4)
             }
-            .scrollIndicators(.hidden)
-            .accessibilityIdentifier("customization.bodyColors")
+
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeader("玻璃与金属")
+                LazyVGrid(columns: twoColumns, spacing: 12) {
+                    ForEach(OneTapeBodyMaterial.glassAndMetal) { material in
+                        OneTapeCustomizationTile(
+                            title: material.title,
+                            selected: appearance.bodyMaterial == material,
+                            studioMarker: false,
+                            identifier: "customization.material.\(material.rawValue)"
+                        ) {
+                            appearance.selectBodyMaterial(material)
+                        } thumbnail: {
+                            OneTapeMaterialPreview(material: material)
+                        }
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                sectionHeader("机身色调")
+                ScrollView(.horizontal) {
+                    HStack(spacing: 4) {
+                        ForEach(OneTapeAppearance.BodyColor.allCases) { color in
+                            colorButton(color)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .scrollIndicators(.hidden)
+                .accessibilityIdentifier("customization.bodyColors")
+            }
         }
         .contentShape(Rectangle())
+    }
+
+    private var twoColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 12), count: 2)
+    }
+
+    private var threeColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.65))
+            .accessibilityAddTraits(.isHeader)
     }
 
     private func colorButton(_ color: OneTapeAppearance.BodyColor) -> some View {

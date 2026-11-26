@@ -16,6 +16,9 @@ struct OneTapeRoot: View {
     @State private var drawingRequest: OneTapeDrawingWorkflowRequest?
     @State private var halftoneRequest: OneTapeHalftoneWorkflowRequest?
     @State private var drawingOperationNotice: String?
+    // Held via @State rather than @StateObject so 30Hz tilt updates only
+    // invalidate leaf foil/body views instead of re-evaluating root chrome.
+    @State private var tiltMonitor = OneTapeTiltMonitor()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
@@ -36,6 +39,7 @@ struct OneTapeRoot: View {
                         artwork: currentArtwork,
                         artworkColor: bodyArtworkColor,
                         visualization: music.player.visualization,
+                        tiltMonitor: tiltMonitor,
                         tapeProgress: OneTapeTapeGeometry.progress(queueIDs: music.player.queue.ids,
                             tracks: music.player.tracks, currentID: music.player.currentTrack?.id,
                             position: music.player.position),
@@ -221,6 +225,7 @@ struct OneTapeRoot: View {
             // Keep the opened crate alive so returning from the physical player
             // preserves its selected case, query, section and scroll position.
             if destination == .library { hasOpenedLibrary = true }
+            syncTiltMonitor()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { opening.suspend() }
@@ -230,17 +235,20 @@ struct OneTapeRoot: View {
                 orientation.stop()
                 music.player.cancelWinding()
             }
+            syncTiltMonitor()
         }
         .onAppear {
             if opening.isVisible { store.navigate(to: .player) }
             bodyArtworkColor = OneTapeArtworkColorSampler.color(from: currentArtwork)
             music.setTransportFeedbackActive(scenePhase == .active)
             store.activate(); orientation.start()
+            syncTiltMonitor()
         }
         .onDisappear {
             opening.suspend()
             music.setTransportFeedbackActive(false)
             store.suspend(); orientation.stop(); music.cancel()
+            tiltMonitor.stop()
         }
         .onChange(of: currentArtwork) { _, image in
             bodyArtworkColor = OneTapeArtworkColorSampler.color(from: image)
@@ -248,12 +256,17 @@ struct OneTapeRoot: View {
         .onChange(of: reduceMotion) { _, reduced in
             // Switching the accessibility setting mid-flight cancels the motion.
             if reduced, opening.isVisible { opening.suspend() }
+            syncTiltMonitor()
         }
         .onChange(of: opening.isVisible) { _, visible in
             if !visible, let notice = opening.notice {
                 music.message = notice
                 opening.notice = nil
             }
+            syncTiltMonitor()
+        }
+        .onChange(of: store.appearance.needsMotionTilt) { _, _ in
+            syncTiltMonitor()
         }
         .task(id: music.player.currentTrack?.id) {
             // A cold restore may show the player without opening the crate.
@@ -397,8 +410,20 @@ struct OneTapeRoot: View {
         Alert(title: Text(notice.title), message: Text(notice.message), dismissButton: .default(Text("知道了")))
     }
 
+    private func syncTiltMonitor() {
+        let shouldRun = !opening.isVisible
+            && store.presentation.destination == .player
+            && scenePhase == .active
+            && store.appearance.needsMotionTilt
+        tiltMonitor.setActive(shouldRun, reducedMotion: reduceMotion)
+    }
+
     private var cassetteReadout: OneTapeCassetteReadout {
-        OneTapeCassetteReadout(queueIDs: music.player.queue.ids, tracks: music.player.tracks)
+        OneTapeCassetteReadout(
+            queueIDs: music.player.queue.ids,
+            tracks: music.player.tracks,
+            currentTrackID: music.player.currentTrack?.id
+        )
     }
 
     private var currentArtwork: UIImage? {

@@ -18,9 +18,9 @@ enum OneTapeBespokeGeometry {
     static let bottomCapstans = [CGPoint(x: 82, y: 168), CGPoint(x: 206, y: 168)]
     static let bottomGuides = [CGPoint(x: 108, y: 164), CGPoint(x: 180, y: 164)]
 
-    static let armatureWindow = CGRect(x: 26, y: 46, width: 236, height: 84)
-    static let fieldNotesWindow = CGRect(x: 84, y: 74, width: 120, height: 32)
-    static let silverOvalWindow = CGRect(x: 34, y: 48, width: 220, height: 84)
+    static let armatureWindow = CGRect(x: 48, y: 64, width: 191, height: 53)
+    static let fieldNotesWindow = CGRect(x: 84, y: 76, width: 120, height: 28)
+    static let silverOvalWindow = CGRect(x: 52, y: 63.5, width: 183, height: 54)
 
     static var drawingScale: CGSize {
         let target = OneTapeCassettePocketMask.shellFrame
@@ -49,7 +49,7 @@ enum OneTapeBespokeGeometry {
     }
 
     static var twinArcFigure8: Path {
-        let radius: CGFloat = 46
+        let radius: CGFloat = 41
         var path = Path()
         path.move(to: CGPoint(x: supply.x, y: supply.y - radius))
         for deg in stride(from: -90.0, through: -270.0, by: -5.0) {
@@ -57,13 +57,13 @@ enum OneTapeBespokeGeometry {
             path.addLine(to: CGPoint(x: supply.x + cos(rad) * radius, y: supply.y + sin(rad) * radius))
         }
         path.addQuadCurve(to: CGPoint(x: takeup.x, y: takeup.y + radius),
-                          control: CGPoint(x: 144, y: takeup.y + 28))
+                          control: CGPoint(x: 144, y: takeup.y + 24))
         for deg in stride(from: 90.0, through: -90.0, by: -5.0) {
             let rad = deg * .pi / 180
             path.addLine(to: CGPoint(x: takeup.x + cos(rad) * radius, y: takeup.y + sin(rad) * radius))
         }
         path.addQuadCurve(to: CGPoint(x: supply.x, y: supply.y - radius),
-                          control: CGPoint(x: 144, y: supply.y - 28))
+                          control: CGPoint(x: 144, y: supply.y - 24))
         path.closeSubpath()
         return path
     }
@@ -71,11 +71,11 @@ enum OneTapeBespokeGeometry {
     static func landscapeWindow(for style: OneTapeAppearance.TapeStyle) -> Path {
         switch style {
         case .armature:
-            return Path(roundedRect: armatureWindow, cornerRadius: 5)
+            return Path(roundedRect: armatureWindow, cornerRadius: 8)
         case .fieldNotes:
-            return Path(roundedRect: fieldNotesWindow, cornerRadius: 16)
-                .union(circle(center: supply, radius: 30))
-                .union(circle(center: takeup, radius: 30))
+            return Path(roundedRect: fieldNotesWindow, cornerRadius: 14)
+                .union(circle(center: supply, radius: 28))
+                .union(circle(center: takeup, radius: 28))
         case .silverOval:
             return Path(roundedRect: silverOvalWindow, cornerRadius: silverOvalWindow.height / 2)
         case .twinArc:

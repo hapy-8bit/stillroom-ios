@@ -176,33 +176,27 @@ struct OneTapeCassetteArtwork: View {
     }
 }
 
-/// Calibrated retro Memphis finish composited under neutralized `OneTapeClassicShell`
-/// lighting so pastel rose plastic, off-white trapezoid, slate-teal grid, screws,
-/// guide pins, and 77pt reel collars retain physical 3D molding without garish neon clipping.
+/// Restrained architectural woven-linen shell (亚麻) composited under
+/// neutralized `OneTapeClassicShell` lighting so the warm oatmeal flax weave,
+/// quiet sand head-bridge, real screws and 77pt hub collars keep authentic 3D depth.
 private struct OneTapeMemphisShell: View {
     let size: CGSize
 
-    // Pre-multiply colors compensate for `OneTapeClassicShell`'s ~0.84 midtone
-    // luminance when multiplied on top, yielding matte pastel target hues.
-    private let pinkBase = Color(red: 1.00, green: 0.835, blue: 0.865)
-    private let creamTrapezoid = Color(red: 1.00, green: 0.992, blue: 0.965)
-    private let mustardYellow = Color(red: 0.95, green: 0.84, blue: 0.34)
-    private let stickerTeal = Color(red: 0.41, green: 0.73, blue: 0.78)
-    private let gridGreen = Color(red: 0.27, green: 0.69, blue: 0.48)
-    private let confettiInk = Color(white: 0.16).opacity(0.58)
+    // Pre-compensated bright warm linen tones so multiplying `OneTapeClassicShell`
+    // (~0.84 midtone) yields a calm natural oatmeal fabric finish.
+    private let linenBase = Color(red: 0.99, green: 0.96, blue: 0.90)
+    private let bridgeSand = Color(red: 0.95, green: 0.92, blue: 0.85)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            colorArtwork
+            linenArtwork
                 .mask {
-                    OneTapeMemphisCutoutShape(
+                    OneTapeLinenCutoutShape(
                         bounds: CGRect(x: 14, y: 13.7, width: 348, height: 548),
                         cornerRadius: 15.5
                     )
                     .fill(.white, style: FillStyle(eoFill: true))
                 }
-                // Intersect with `OneTapeClassicShell` alpha so the four trapezoid
-                // guide holes punch cleanly through to `OneTapeClassicStill` underneath.
                 .mask {
                     Image("OneTapeClassicShell")
                         .resizable()
@@ -211,129 +205,52 @@ private struct OneTapeMemphisShell: View {
             Image("OneTapeClassicShell")
                 .resizable()
                 .frame(width: size.width, height: size.height)
-                .saturation(0.18)
+                .saturation(0.16)
                 .blendMode(.multiply)
         }
         .frame(width: size.width, height: size.height)
         .drawingGroup()
     }
 
-    private var colorArtwork: some View {
+    private var linenArtwork: some View {
         ZStack(alignment: .topLeading) {
-            pinkBase
-            confettiLayer
-            trapezoidBridge
-            stickerLayer
+            linenBase
+            Canvas { context, _ in
+                // Fine tactile warp and weft linen threads with soft organic slub variation.
+                for col in 0..<150 {
+                    let x = 14 + CGFloat(col) * (348.0 / 150.0)
+                    let n = hashUnit(UInt64(col * 37 + 11))
+                    var warp = Path()
+                    warp.move(to: CGPoint(x: x, y: 14))
+                    warp.addLine(to: CGPoint(x: x, y: 562))
+                    let tint: Color = n > 0.52
+                        ? .white.opacity(0.14 * n)
+                        : Color(red: 0.48, green: 0.41, blue: 0.31).opacity(0.055 + 0.05 * n)
+                    context.stroke(warp, with: .color(tint), lineWidth: n > 0.86 ? 1.0 : 0.55)
+                }
+                for row in 0..<240 {
+                    let y = 14 + CGFloat(row) * (548.0 / 240.0)
+                    let n = hashUnit(UInt64(row * 53 + 29))
+                    var weft = Path()
+                    weft.move(to: CGPoint(x: 14, y: y))
+                    weft.addLine(to: CGPoint(x: 362, y: y))
+                    let tint: Color = n > 0.48
+                        ? Color(red: 1.0, green: 0.99, blue: 0.95).opacity(0.14 * n)
+                        : Color(red: 0.44, green: 0.37, blue: 0.27).opacity(0.05 + 0.05 * n)
+                    context.stroke(weft, with: .color(tint), lineWidth: n > 0.88 ? 1.05 : 0.55)
+                }
+                // Subtle warm woven border accent around the main label plane.
+                let labelBorder = Path(roundedRect: CGRect(x: 112, y: 42, width: 224, height: 492), cornerRadius: 5)
+                context.stroke(labelBorder,
+                               with: .color(Color(red: 0.50, green: 0.43, blue: 0.34).opacity(0.16)),
+                               lineWidth: 0.9)
+            }
+            OneTapeLinenTrapezoid(inset: 0)
+                .fill(bridgeSand.opacity(0.75))
+            OneTapeLinenTrapezoid(inset: 0.5)
+                .stroke(Color(red: 0.46, green: 0.40, blue: 0.32).opacity(0.18), lineWidth: 0.8)
         }
         .frame(width: size.width, height: size.height)
-    }
-
-    private var confettiLayer: some View {
-        Canvas { context, _ in
-            var strokes = Path()
-            let screws: [CGPoint] = [
-                CGPoint(x: 34.2, y: 36.1),
-                CGPoint(x: 344.6, y: 35.5),
-                CGPoint(x: 33.6, y: 540.4),
-                CGPoint(x: 345.2, y: 541.2)
-            ]
-            for row in 0..<28 {
-                for column in 0..<18 {
-                    let seed = UInt64(row * 31 + column * 97 + 17)
-                    let jx = hashUnit(seed &* 2654435761) * 9 - 4.5
-                    let jy = hashUnit(seed &* 2246822519) * 9 - 4.5
-                    let x = CGFloat(column) * 20 + 18 + jx
-                    let y = CGFloat(row) * 20 + 14 + jy
-                    let center = CGPoint(x: x, y: y)
-                    // Keep screw recesses clean; trapezoid and sticker cover the interior.
-                    if screws.contains(where: { hypot($0.x - center.x, $0.y - center.y) < 13 }) {
-                        continue
-                    }
-                    let angle = hashUnit(seed &* 3266489917) * .pi
-                    let half = 2.2 + hashUnit(seed &* 668265263) * 0.85
-                    let dx = cos(angle) * half
-                    let dy = sin(angle) * half
-                    if (row + column).isMultiple(of: 4) {
-                        let perpAngle = angle + 1.25
-                        strokes.move(to: CGPoint(x: x - dx * 0.85, y: y - dy * 0.85))
-                        strokes.addLine(to: center)
-                        strokes.addLine(to: CGPoint(x: x + cos(perpAngle) * half,
-                                                    y: y + sin(perpAngle) * half))
-                    } else {
-                        strokes.move(to: CGPoint(x: x - dx, y: y - dy))
-                        strokes.addLine(to: CGPoint(x: x + dx, y: y + dy))
-                    }
-                }
-            }
-            context.stroke(strokes, with: .color(confettiInk),
-                           style: StrokeStyle(lineWidth: 1.35, lineCap: .round, lineJoin: .round))
-        }
-    }
-
-    private var trapezoidBridge: some View {
-        ZStack {
-            OneTapeMemphisTrapezoid(inset: 0)
-                .fill(creamTrapezoid)
-            Canvas { context, _ in
-                var waves = Path()
-                for xBase in [34.0, 57.0, 86.0] {
-                    var started = false
-                    for yStep in stride(from: 124.0, through: 452.0, by: 3.0) {
-                        let wave = sin((yStep - 124.0) / 24.0) * 2.8
-                        let pt = CGPoint(x: xBase + wave, y: yStep)
-                        if !started {
-                            waves.move(to: pt)
-                            started = true
-                        } else {
-                            waves.addLine(to: pt)
-                        }
-                    }
-                }
-                context.stroke(waves, with: .color(mustardYellow),
-                               style: StrokeStyle(lineWidth: 2.3, lineCap: .round, lineJoin: .round))
-            }
-            .clipShape(OneTapeMemphisTrapezoid(inset: 4))
-        }
-    }
-
-    private var stickerLayer: some View {
-        ZStack {
-            stickerTeal
-            Canvas { context, _ in
-                var grid = Path()
-                for xLine in stride(from: 111.0, through: 338.0, by: 22.5) {
-                    var started = false
-                    for yStep in stride(from: 42.0, through: 536.0, by: 6.0) {
-                        let wob = sin((yStep - 42.0) / 32.0 + xLine * 0.1) * 0.65
-                        let pt = CGPoint(x: xLine + wob, y: yStep)
-                        if !started { grid.move(to: pt); started = true } else { grid.addLine(to: pt) }
-                    }
-                }
-                for yLine in stride(from: 42.0, through: 536.0, by: 23.0) {
-                    var started = false
-                    for xStep in stride(from: 111.0, through: 338.0, by: 6.0) {
-                        let wob = sin((xStep - 111.0) / 32.0 + yLine * 0.1) * 0.65
-                        let pt = CGPoint(x: xStep, y: yLine + wob)
-                        if !started { grid.move(to: pt); started = true } else { grid.addLine(to: pt) }
-                    }
-                }
-                context.stroke(grid, with: .color(gridGreen),
-                               style: StrokeStyle(lineWidth: 1.25, lineCap: .round))
-                let accents = [CGPoint(x: 274, y: 119), CGPoint(x: 275, y: 336),
-                               CGPoint(x: 143, y: 218), CGPoint(x: 136, y: 429)]
-                for origin in accents {
-                    let rect = CGRect(x: origin.x, y: origin.y, width: 9.5, height: 9.5)
-                    context.fill(Path(roundedRect: rect, cornerRadius: 2), with: .color(mustardYellow))
-                }
-            }
-        }
-        .mask {
-            OneTapeMemphisCutoutShape(
-                bounds: CGRect(x: 111, y: 42, width: 226, height: 492),
-                cornerRadius: 5
-            )
-            .fill(.white, style: FillStyle(eoFill: true))
-        }
     }
 
     private func hashUnit(_ value: UInt64) -> CGFloat {
@@ -342,9 +259,7 @@ private struct OneTapeMemphisShell: View {
     }
 }
 
-/// Clips a Memphis outer contour (`shell` or `sticker`) while punching the two
-/// 74pt reel collar openings and the 22×127pt central acrylic window cleanly.
-private struct OneTapeMemphisCutoutShape: Shape {
+private struct OneTapeLinenCutoutShape: Shape {
     let bounds: CGRect
     let cornerRadius: CGFloat
 
@@ -365,7 +280,7 @@ private struct OneTapeMemphisCutoutShape: Shape {
     }
 }
 
-private struct OneTapeMemphisTrapezoid: Shape {
+private struct OneTapeLinenTrapezoid: Shape {
     let inset: CGFloat
 
     func path(in rect: CGRect) -> Path {

@@ -8,6 +8,8 @@ struct OneTapeBodySurface: View {
     let appearance: OneTapeAppearance
     var artworkColor: OneTapeTransportMaterial.RGB? = nil
     var artwork: UIImage? = nil
+    var tilt: CGSize = OneTapeTiltMonitor.restingTilt
+    var energy: Double = 0
 
     private var finish: OneTapeBodyFinish {
         OneTapeBodyFinish(appearance: appearance, artworkColor: artworkColor)
@@ -17,7 +19,7 @@ struct OneTapeBodySurface: View {
         ZStack {
             base
             if let material = appearance.bodyMaterial {
-                OneTapeMaterialShell(material: material, color: appearance.bodyColor)
+                OneTapeMaterialShell(material: material, color: appearance.bodyColor, tilt: tilt, energy: energy)
                     .mask {
                         OneTapeBodyShellMask()
                             .fill(.white, style: FillStyle(eoFill: true))
@@ -165,6 +167,54 @@ private struct OneTapeBodyShellMask: Shape {
         path.addRoundedRect(in: CGRect(x: 100.33, y: 651.12, width: 264.39, height: 165.63),
                             cornerSize: CGSize(width: 2.5, height: 2.5))
         return path
+    }
+}
+
+/// Leaf observer so tilt and audio-energy updates only redraw dynamic body shells
+/// (Holo Foil, Silver Foil, Disco Mirror, Circuit Glow) without rebuilding root chrome.
+struct OneTapeLiveBodySurface: View {
+    let appearance: OneTapeAppearance
+    var artworkColor: OneTapeTransportMaterial.RGB? = nil
+    var artwork: UIImage? = nil
+    @ObservedObject var tiltMonitor: OneTapeTiltMonitor
+    var visualization: AudioVisualizationSignal? = nil
+
+    var body: some View {
+        if let visualization, appearance.bodyMaterial == .disco || appearance.bodyMaterial == .circuitGlow {
+            OneTapeAudioReactiveBodySurface(
+                appearance: appearance,
+                artworkColor: artworkColor,
+                artwork: artwork,
+                tilt: tiltMonitor.tilt,
+                visualization: visualization
+            )
+        } else {
+            OneTapeBodySurface(
+                appearance: appearance,
+                artworkColor: artworkColor,
+                artwork: artwork,
+                tilt: tiltMonitor.tilt
+            )
+        }
+    }
+}
+
+private struct OneTapeAudioReactiveBodySurface: View {
+    let appearance: OneTapeAppearance
+    var artworkColor: OneTapeTransportMaterial.RGB? = nil
+    var artwork: UIImage? = nil
+    let tilt: CGSize
+    @ObservedObject var visualization: AudioVisualizationSignal
+
+    var body: some View {
+        let energy = Double(max(visualization.frame.rms, visualization.frame.peak * 0.72))
+        OneTapeBodySurface(
+            appearance: appearance,
+            artworkColor: artworkColor,
+            artwork: artwork,
+            tilt: tilt,
+            energy: energy
+        )
     }
 }
 

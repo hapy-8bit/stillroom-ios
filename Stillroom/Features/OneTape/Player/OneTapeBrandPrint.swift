@@ -6,6 +6,7 @@ struct OneTapeBrandPrint: View {
     let appearance: OneTapeAppearance
     var cassetteReadout: OneTapeCassetteReadout = .empty
     var customPrint: OneTapeResolvedPrint? = nil
+    var tilt: CGSize = OneTapeTiltMonitor.restingTilt
 
     @ViewBuilder var body: some View {
         legacyBody
@@ -17,7 +18,12 @@ struct OneTapeBrandPrint: View {
 
     private var legacyBody: some View {
         ZStack(alignment: .topLeading) {
-            if appearance.isBrandPrintVisible {
+            if appearance.tapeFoilStyle != nil {
+                OneTapeHoloFoilOverlay(appearance: appearance, tilt: tilt)
+            }
+            if appearance.trackListEnabled {
+                OneTapeTrackListPrint(appearance: appearance, readout: cassetteReadout)
+            } else if appearance.isBrandPrintVisible {
                 Text("A")
                     .font(.system(size: 21, weight: .light, design: .serif))
                     .rotationEffect(.degrees(90))
@@ -77,5 +83,22 @@ struct OneTapeBrandPrint: View {
             .frame(width: 280, height: 16)
             .rotationEffect(.degrees(90))
             .position(x: x, y: y)
+    }
+}
+
+/// Leaf observer so 30Hz tilt updates only re-render the foil/print layer.
+struct OneTapeLiveBrandPrint: View {
+    let appearance: OneTapeAppearance
+    var cassetteReadout: OneTapeCassetteReadout = .empty
+    var customPrint: OneTapeResolvedPrint? = nil
+    @ObservedObject var tiltMonitor: OneTapeTiltMonitor
+
+    var body: some View {
+        OneTapeBrandPrint(
+            appearance: appearance,
+            cassetteReadout: cassetteReadout,
+            customPrint: customPrint,
+            tilt: tiltMonitor.tilt
+        )
     }
 }

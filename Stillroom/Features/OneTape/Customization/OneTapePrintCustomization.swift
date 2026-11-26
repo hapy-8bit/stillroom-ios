@@ -21,47 +21,18 @@ struct OneTapePrintCustomization: View {
     var onImportFromPhotos: () -> Void = {}
     var onImportFromFiles: () -> Void = {}
 
-    @State private var showsImportSourceDialog = false
-    @State private var showsAllDoodles = false
     @State private var pendingDeleteDrawing: OneTapeCustomDrawing?
     @State private var pendingDeleteArtwork: OneTapeCustomArtwork?
 
     private var displayedDoodles: [OneTapeAppearance.DoodleStyle] {
-        if showsAllDoodles {
-            return OneTapeAppearance.DoodleStyle.allCases
-        }
-        var styles = OneTapeDoodleCatalog.supportedStyles(for: appearance.tapeStyle)
-        if appearance.doodleStyle != .none && !styles.contains(appearance.doodleStyle) {
-            styles.insert(appearance.doodleStyle, at: 1)
-        }
-        return styles
+        OneTapeDoodleCatalog.supportedStyles(for: appearance.tapeStyle)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             drawingTools
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .center) {
-                    sectionTitle("印花")
-                    Spacer()
-                    Button {
-                        withAnimation(.easeOut(duration: 0.18)) {
-                            showsAllDoodles.toggle()
-                        }
-                    } label: {
-                        Text(showsAllDoodles ? "仅当前磁带" : "全部 80 款")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.white.opacity(showsAllDoodles ? 0.92 : 0.58))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(
-                                .white.opacity(showsAllDoodles ? 0.16 : 0.08),
-                                in: Capsule()
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("customization.doodle.scopeToggle")
-                }
+                sectionTitle("印花")
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
                     ForEach(displayedDoodles) { style in
                         OneTapeCustomizationTile(
@@ -79,30 +50,31 @@ struct OneTapePrintCustomization: View {
                             appearance = next
                         } thumbnail: {
                             if style == .none {
-                                RoundedRectangle(cornerRadius: 7).fill(Color(white: 0.16))
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 39.0 / 255.0, green: 39.0 / 255.0, blue: 44.0 / 255.0),
+                                                Color(red: 29.0 / 255.0, green: 29.0 / 255.0, blue: 33.0 / 255.0)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
                             } else {
-                                Image(style.customizationThumbnailAsset)
-                                    .resizable()
-                                    .interpolation(.high)
-                                    .aspectRatio(contentMode: .fit)
+                                ZStack {
+                                    Color(red: 29.0 / 255.0, green: 29.0 / 255.0, blue: 33.0 / 255.0)
+                                    Image(style.customizationThumbnailAsset)
+                                        .resizable()
+                                        .interpolation(.high)
+                                        .aspectRatio(contentMode: .fit)
+                                }
                             }
                         }
                     }
                 }
-                Text(showsAllDoodles
-                     ? "已展开全库 80 款高清手绘印花，按当前磁带壳型墨色与镂空遮罩实时合成。"
-                     : "按当前磁带壳型展示适配印花，与原版顺序一致；右上角可切换浏览全部 80 款。")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.4))
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            glassControl
-            brandPrintControl
-        }
-        .confirmationDialog("选择来源", isPresented: $showsImportSourceDialog, titleVisibility: .hidden) {
-            Button("从“照片”导入", action: onImportFromPhotos)
-            Button("从“文件”导入", action: onImportFromFiles)
-            Button("取消", role: .cancel) {}
+            OneTapeSurfaceEffectsSection(appearance: $appearance)
         }
         .alert("删除这幅画？", isPresented: Binding(
             get: { pendingDeleteDrawing != nil },
@@ -138,53 +110,6 @@ struct OneTapePrintCustomization: View {
         }
     }
 
-    private func illustratedAppearance(_ style: OneTapeAppearance.DoodleStyle) -> OneTapeAppearance {
-        var preview = appearance
-        preview.selectIllustration(style)
-        return preview
-    }
-
-    private var glassControl: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("玻璃")
-            Picker("玻璃", selection: $appearance.glassOpen) {
-                Text("关闭").tag(false)
-                Text("打开").tag(true)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .accessibilityIdentifier("customization.glass")
-        }
-    }
-
-    private var brandPrintControl: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("品牌印字")
-            Picker("品牌印字", selection: Binding(
-                get: { appearance.isBrandPrintVisible },
-                set: { value in
-                    var next = appearance
-                    next.setBrandPrintVisible(value)
-                    appearance = next
-                }
-            )) {
-                Text("关").tag(false)
-                Text("开").tag(true)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .accessibilityIdentifier("customization.brandPrint")
-            if appearance.doodleStyle != .none
-                || appearance.customDrawingID != nil
-                || appearance.customArtworkID != nil {
-                Text("开启品牌印字会替换当前插画。")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.4))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
     private var drawingTools: some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
         return VStack(alignment: .leading, spacing: 14) {
@@ -205,13 +130,7 @@ struct OneTapePrintCustomization: View {
                     customArtworkTile(item)
                 }
             }
-            HStack(spacing: 10) {
-                paperAction("获取画纸", symbol: "square.and.arrow.down", identifier: "customization.getPaper", action: onGetPaper)
-                paperAction("导入", symbol: "square.and.arrow.up", identifier: "customization.importDrawing") {
-                    showsImportSourceDialog = true
-                }
-            }
-            Text("在磁带上画画，或印上网点照片。也可以保存画纸，在别处画好后再导入。")
+            Text("在磁带上画画，或印上网点照片。")
                 .font(.system(size: 12))
                 .foregroundStyle(.white.opacity(0.4))
                 .fixedSize(horizontal: false, vertical: true)
@@ -355,29 +274,6 @@ struct OneTapePrintCustomization: View {
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
-    }
-
-    private func paperAction(_ title: String, symbol: String, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: symbol)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white.opacity(0.88))
-                .padding(.horizontal, 15)
-                .frame(minHeight: 40)
-                .background(Color(white: 0.16), in: Capsule())
-                .overlay(alignment: .topTrailing) {
-                    Circle()
-                        .fill(Color(red: 0.82, green: 0.53, blue: 0.31))
-                        .frame(width: 7, height: 7)
-                        .overlay { Circle().stroke(Color(white: 0.06), lineWidth: 1) }
-                        .offset(x: -1, y: 1)
-                        .accessibilityHidden(true)
-                }
-                .frame(minHeight: 44)
-                .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
     }
 
     private func drawingToolButton<Icon: View>(

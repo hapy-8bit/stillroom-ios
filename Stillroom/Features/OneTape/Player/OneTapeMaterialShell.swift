@@ -5,6 +5,8 @@ import SwiftUI
 struct OneTapeMaterialShell: View {
     let material: OneTapeBodyMaterial
     var color: OneTapeAppearance.BodyColor = .black
+    var tilt: CGSize = OneTapeTiltMonitor.restingTilt
+    var energy: Double = 0
 
     var body: some View {
         Canvas { context, size in
@@ -12,10 +14,20 @@ struct OneTapeMaterialShell: View {
             let palette = material.palette(color: color)
             let rect = CGRect(x: 0, y: 0, width: 393, height: 852)
             context.fill(Path(rect), with: .color(palette.shell.materialColor))
-            if material.isGlass {
+            switch material {
+            case .frostedGlass, .smokedGlass:
                 glass(in: &context, palette: palette, rect: rect)
-            } else {
+            case .brushedAluminum, .darkTitanium:
                 metal(in: &context, palette: palette, rect: rect)
+            case .holoFoil, .silverFoil, .disco, .circuitGlow, .seeThrough:
+                OneTapeFoilAndOpticBodyRenderer.draw(
+                    material: material, in: &context, palette: palette,
+                    rect: rect, tilt: tilt, energy: energy
+                )
+            case .linen, .camoDigital, .camoStealth, .stickerBomb, .greyTracks, .cleanPlates:
+                OneTapeTactileBodyRenderer.draw(
+                    material: material, in: &context, palette: palette, rect: rect
+                )
             }
             edges(in: &context, palette: palette, rect: rect)
             fittings(in: &context, palette: palette)

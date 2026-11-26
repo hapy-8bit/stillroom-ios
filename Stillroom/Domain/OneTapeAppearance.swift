@@ -16,6 +16,50 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     var glassOpen = true
     var customDrawingID: UUID? = nil
     var customArtworkID: UUID? = nil
+    // Optional / default-backed surface effects added in build 100.
+    // Custom decoding below keeps all earlier preference records readable.
+    var tapeFoilStyle: TapeFoilStyle? = nil
+    var trackListEnabled = false
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let decodedTape = try container.decodeIfPresent(TapeStyle.self, forKey: .tapeStyle) ?? .classic
+        // The six sculpted moulds and .window were retired from the tape catalog; map any
+        // legacy preference cleanly to .classic without overwriting other fields.
+        tapeStyle = (decodedTape.isSculpted || decodedTape == .window) ? .classic : decodedTape
+        printStyle = try container.decodeIfPresent(PrintStyle.self, forKey: .printStyle) ?? .brand
+        bodyStyle = try container.decodeIfPresent(BodyStyle.self, forKey: .bodyStyle) ?? .black
+        screenStyle = try container.decodeIfPresent(ScreenStyle.self, forKey: .screenStyle) ?? .lcd
+        doodleStyle = try container.decodeIfPresent(DoodleStyle.self, forKey: .doodleStyle) ?? .none
+        bodyColor = try container.decodeIfPresent(BodyColor.self, forKey: .bodyColor) ?? .black
+        bodyMaterial = try container.decodeIfPresent(OneTapeBodyMaterial.self, forKey: .bodyMaterial)
+        reelColor = try container.decodeIfPresent(ReelColor.self, forKey: .reelColor)
+        glassOpen = try container.decodeIfPresent(Bool.self, forKey: .glassOpen) ?? true
+        customDrawingID = try container.decodeIfPresent(UUID.self, forKey: .customDrawingID)
+        customArtworkID = try container.decodeIfPresent(UUID.self, forKey: .customArtworkID)
+        tapeFoilStyle = try container.decodeIfPresent(TapeFoilStyle.self, forKey: .tapeFoilStyle)
+        trackListEnabled = try container.decodeIfPresent(Bool.self, forKey: .trackListEnabled) ?? false
+        if doodleStyle != .none && !OneTapeDoodleCatalog.supports(doodleStyle, on: tapeStyle) {
+            doodleStyle = .none
+            if customDrawingID == nil && customArtworkID == nil && !trackListEnabled && printStyle == .blank {
+                printStyle = .brand
+            }
+        }
+    }
+
+    mutating func selectTapeStyle(_ style: TapeStyle) {
+        tapeStyle = style
+        // Match Cassette 1.0.5 `TapeDoodle.fits(skin:)`: a built-in illustration
+        // drawn for another aperture cutout does not carry over clipped onto a new shell.
+        if doodleStyle != .none && !OneTapeDoodleCatalog.supports(doodleStyle, on: style) {
+            doodleStyle = .none
+            if customDrawingID == nil && customArtworkID == nil && !trackListEnabled && printStyle == .blank {
+                printStyle = .brand
+            }
+        }
+    }
 
     mutating func selectBodyStyle(_ style: BodyStyle) {
         bodyStyle = style
@@ -31,27 +75,39 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     }
 
     var isBrandPrintVisible: Bool {
-        printStyle == .brand && doodleStyle == .none && customDrawingID == nil && customArtworkID == nil
+        printStyle == .brand
+            && doodleStyle == .none
+            && customDrawingID == nil
+            && customArtworkID == nil
+            && !trackListEnabled
+    }
+
+    var needsMotionTilt: Bool {
+        tapeFoilStyle != nil || (bodyMaterial?.usesTilt ?? false)
     }
 
     mutating func selectIllustration(_ style: DoodleStyle) {
         doodleStyle = style
         customDrawingID = nil
         customArtworkID = nil
-        printStyle = style == .none ? .brand : .blank
+        if style != .none {
+            trackListEnabled = false
+        }
+        printStyle = style == .none && !trackListEnabled ? .brand : .blank
     }
 
     mutating func selectCustomDrawing(_ id: UUID) {
         customDrawingID = id
         customArtworkID = nil
         doodleStyle = .none
+        trackListEnabled = false
         printStyle = .blank
     }
 
     mutating func clearCustomDrawingSelection() {
         guard customDrawingID != nil else { return }
         customDrawingID = nil
-        if customArtworkID == nil && doodleStyle == .none && printStyle == .blank {
+        if customArtworkID == nil && doodleStyle == .none && !trackListEnabled && printStyle == .blank {
             printStyle = .brand
         }
     }
@@ -60,13 +116,14 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
         customArtworkID = id
         customDrawingID = nil
         doodleStyle = .none
+        trackListEnabled = false
         printStyle = .blank
     }
 
     mutating func clearCustomArtworkSelection() {
         guard customArtworkID != nil else { return }
         customArtworkID = nil
-        if customDrawingID == nil && doodleStyle == .none && printStyle == .blank {
+        if customDrawingID == nil && doodleStyle == .none && !trackListEnabled && printStyle == .blank {
             printStyle = .brand
         }
     }
@@ -74,14 +131,27 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     mutating func setBrandPrintVisible(_ visible: Bool) {
         printStyle = visible ? .brand : .blank
         // Keep the existing replacement rule instead of inventing overlapping
-        // lettering on illustrations or custom drawings. A single value write persists both fields.
+        // lettering on illustrations, track lists or custom drawings.
         if visible {
             doodleStyle = .none
             customDrawingID = nil
             customArtworkID = nil
+            trackListEnabled = false
         } else {
             customDrawingID = nil
             customArtworkID = nil
+        }
+    }
+
+    mutating func setTrackListEnabled(_ enabled: Bool) {
+        trackListEnabled = enabled
+        if enabled {
+            doodleStyle = .none
+            customDrawingID = nil
+            customArtworkID = nil
+            printStyle = .blank
+        } else if doodleStyle == .none && customDrawingID == nil && customArtworkID == nil && printStyle == .blank {
+            printStyle = .brand
         }
     }
 
@@ -89,7 +159,13 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     // while making the picker and physical sliding cover one authoritative value.
     private enum CodingKeys: String, CodingKey {
         case tapeStyle, printStyle, bodyStyle, screenStyle, doodleStyle, bodyColor, bodyMaterial, reelColor, customDrawingID, customArtworkID
+        case tapeFoilStyle, trackListEnabled
         case glassOpen = "glassEnabled"
+    }
+
+    enum TapeFoilStyle: String, Codable, CaseIterable, Identifiable, Sendable {
+        case holo, silver
+        var id: String { rawValue }
     }
 
     enum TapeStyle: String, Codable, CaseIterable, Identifiable, Sendable {
@@ -102,7 +178,7 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
         static let classicGroup: [Self] = [.classic, .graphite]
         static let bespoke: [Self] = [.armature, .fieldNotes, .silverOval, .twinArc]
         static let sculpted: [Self] = [.strata, .facet, .islands, .ribs, .stream, .eclipse]
-        static let retroGroup: [Self] = [.clear, .window, .memphis, .bronze]
+        static let retroGroup: [Self] = [.clear, .memphis, .bronze]
         var isSculpted: Bool { Self.sculpted.contains(self) }
         var isBespoke: Bool { Self.bespoke.contains(self) }
         var usesLightInk: Bool { self == .graphite || self == .clear || self == .armature || self == .twinArc }

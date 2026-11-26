@@ -14,19 +14,23 @@ struct OneTapeCustomizationTile<Thumbnail: View>: View {
                 thumbnail()
                     .frame(maxWidth: .infinity)
                     .aspectRatio(240.0 / 153.0, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 7))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(.white.opacity(selected ? 0 : 0.08), lineWidth: 0.75)
+                    }
                     .overlay(alignment: .topTrailing) {
                         if studioMarker {
                             Circle()
-                                .fill(Color(red: 0.92, green: 0.61, blue: 0.28))
-                                .frame(width: 6, height: 6)
-                                .overlay { Circle().stroke(.black.opacity(0.15), lineWidth: 0.5) }
-                                .padding(9.5)
+                                .fill(Color(red: 0.87, green: 0.56, blue: 0.27))
+                                .frame(width: 5.5, height: 5.5)
+                                .overlay { Circle().stroke(.black.opacity(0.28), lineWidth: 0.5) }
+                                .padding(6.5)
                                 .accessibilityHidden(true)
                         }
                     }
                     .overlay {
-                        RoundedRectangle(cornerRadius: 9)
+                        RoundedRectangle(cornerRadius: 10)
                             .stroke(selected ? .white.opacity(0.95) : .clear, lineWidth: 1.8)
                             .padding(-2.5)
                     }
@@ -72,19 +76,19 @@ extension OneTapeAppearance.TapeStyle {
         switch self {
         case .classic: "白色"
         case .graphite: "黑色"
-        case .armature: "桁架"
-        case .fieldNotes: "档案"
-        case .silverOval: "银铝"
-        case .twinArc: "双弧"
+        case .armature: "烟灰"
+        case .fieldNotes: "纸纹"
+        case .silverOval: "原铝"
+        case .twinArc: "雾蓝"
         case .strata: "岩层"
         case .facet: "折面"
         case .islands: "浮岛"
         case .ribs: "肋骨"
         case .stream: "流线"
         case .eclipse: "月蚀"
-        case .clear: "透明"
-        case .window: "窗口"
-        case .memphis: "Memphis"
+        case .clear: "透黑"
+        case .window: "宽窗"
+        case .memphis: "亚麻"
         case .bronze: "古铜"
         }
     }

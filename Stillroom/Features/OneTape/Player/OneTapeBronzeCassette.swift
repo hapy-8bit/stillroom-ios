@@ -138,9 +138,9 @@ struct OneTapeBronzeCassette: View {
     private var windowWell: some View {
         Canvas { context, _ in
             context.fill(BronzeGeometry.wedge, with: .linearGradient(
-                Gradient(colors: [Color(red: 0.35, green: 0.34, blue: 0.29),
-                                  Color(red: 0.55, green: 0.53, blue: 0.46),
-                                  Color(red: 0.38, green: 0.37, blue: 0.31)]),
+                Gradient(colors: [Color(red: 0.28, green: 0.27, blue: 0.23),
+                                  Color(red: 0.40, green: 0.39, blue: 0.34),
+                                  Color(red: 0.30, green: 0.29, blue: 0.25)]),
                 startPoint: CGPoint(x: 26, y: 90), endPoint: CGPoint(x: 175, y: 94)))
             var inside = context
             inside.clip(to: BronzeGeometry.wedge)
@@ -149,27 +149,27 @@ struct OneTapeBronzeCassette: View {
                 var shadow = Path()
                 shadow.move(to: CGPoint(x: x, y: 36))
                 shadow.addLine(to: CGPoint(x: x, y: 141))
-                inside.stroke(shadow, with: .color(.black.opacity(0.17)), lineWidth: 1.2)
-                inside.stroke(shadow.offsetBy(dx: 1.1, dy: 0),
-                              with: .color(.white.opacity(0.26)), lineWidth: 0.65)
+                inside.stroke(shadow, with: .color(.black.opacity(0.08)), lineWidth: 0.85)
+                inside.stroke(shadow.offsetBy(dx: 0.9, dy: 0),
+                              with: .color(.white.opacity(0.09)), lineWidth: 0.45)
             }
-            inside.stroke(BronzeGeometry.wedge, with: .color(.black.opacity(0.30)), lineWidth: 4.2)
+            inside.stroke(BronzeGeometry.wedge, with: .color(.black.opacity(0.32)), lineWidth: 3.6)
         }
         .frame(width: 288, height: 195)
     }
 
     private var windowLip: some View {
         BronzeGeometry.wedge
-            .stroke(LinearGradient(colors: [.black.opacity(0.50), .white.opacity(0.15)],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+            .stroke(LinearGradient(colors: [.black.opacity(0.42), .white.opacity(0.28)],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.8)
             .frame(width: 288, height: 195)
     }
 
     private var rightSocket: some View {
         Circle()
-            .fill(Color(red: 0.44, green: 0.43, blue: 0.38))
-            .overlay { Circle().stroke(.white.opacity(0.42), lineWidth: 0.7) }
-            .shadow(color: .black.opacity(0.28), radius: 0.7, y: 0.6)
+            .fill(Color(red: 0.42, green: 0.40, blue: 0.35))
+            .overlay { Circle().stroke(.white.opacity(0.32), lineWidth: 0.65) }
+            .shadow(color: .black.opacity(0.24), radius: 0.7, y: 0.5)
             .frame(width: 29.5, height: 29.5)
             .position(BronzeGeometry.takeup)
     }
@@ -182,20 +182,20 @@ struct OneTapeBronzeCassette: View {
             }
             ForEach(BronzeGeometry.bottomHoles.indices, id: \.self) { index in
                 Circle()
-                    .fill(Color(white: 0.035))
-                    .overlay { Circle().stroke(.white.opacity(0.68), lineWidth: 0.8) }
-                    .overlay { Circle().stroke(.black.opacity(0.65), lineWidth: 0.45).padding(-1) }
-                    .frame(width: 9.4, height: 9.4)
+                    .fill(Color(white: 0.04))
+                    .overlay { Circle().stroke(.white.opacity(0.24), lineWidth: 0.6) }
+                    .overlay { Circle().stroke(.black.opacity(0.35), lineWidth: 0.45).padding(-0.8) }
+                    .frame(width: 9.0, height: 9.0)
                     .position(BronzeGeometry.bottomHoles[index])
             }
             ForEach(BronzeGeometry.bottomSlots.indices, id: \.self) { index in
-                RoundedRectangle(cornerRadius: 1.2)
-                    .fill(Color(white: 0.025))
+                RoundedRectangle(cornerRadius: 1.3)
+                    .fill(Color(white: 0.035))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 1.2)
-                            .stroke(.white.opacity(0.70), lineWidth: 0.7)
+                        RoundedRectangle(cornerRadius: 1.3)
+                            .stroke(.white.opacity(0.24), lineWidth: 0.55)
                     }
-                    .frame(width: 8.3, height: 6.0)
+                    .frame(width: 8.2, height: 6.0)
                     .position(BronzeGeometry.bottomSlots[index])
             }
         }
@@ -235,56 +235,60 @@ private struct OneTapeBronzeTapePack: View {
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
             let circle = BronzeGeometry.circle(center: center, radius: radius)
             context.fill(circle, with: .radialGradient(
-                Gradient(colors: [Color(red: 0.29, green: 0.27, blue: 0.22),
-                                  Color(red: 0.37, green: 0.35, blue: 0.29),
-                                  Color(red: 0.28, green: 0.27, blue: 0.23)]),
+                Gradient(colors: [Color(red: 0.24, green: 0.22, blue: 0.18),
+                                  Color(red: 0.33, green: 0.30, blue: 0.25),
+                                  Color(red: 0.23, green: 0.21, blue: 0.17)]),
                 center: center, startRadius: 9, endRadius: radius))
             for index in 1..<22 {
                 let ringRadius = 13 + max(0, radius - 13) * CGFloat(index) / 22
                 context.stroke(BronzeGeometry.circle(center: center, radius: ringRadius),
-                               with: .color(.black.opacity(index.isMultiple(of: 3) ? 0.10 : 0.045)),
+                               with: .color(.black.opacity(index.isMultiple(of: 3) ? 0.11 : 0.045)),
                                lineWidth: 0.35)
             }
-            context.stroke(circle, with: .color(.black.opacity(0.22)), lineWidth: 0.6)
+            context.stroke(circle, with: .color(.black.opacity(0.24)), lineWidth: 0.6)
         }
         .frame(width: radius * 2, height: radius * 2)
     }
 }
 
+/// Restrained satin champagne-bronze machined disc replacing the old white/red dial.
 private struct OneTapeBronzeDial: View {
     var showsLegacyHub = true
 
     var body: some View {
         Canvas { context, _ in
             let center = CGPoint(x: 29, y: 29)
-            let face = BronzeGeometry.circle(center: center, radius: 28.5)
-            context.fill(face, with: .linearGradient(
-                Gradient(colors: [Color(white: 0.96), Color(red: 0.85, green: 0.85, blue: 0.80)]),
-                startPoint: .zero, endPoint: CGPoint(x: 55, y: 55)))
-            context.stroke(face, with: .color(.black.opacity(0.29)), lineWidth: 0.7)
-            for index in 0..<20 {
-                let angle = Double(index) * 2 * .pi / 20
-                let inner: CGFloat = index.isMultiple(of: 5) ? 21 : 23
+            let face = BronzeGeometry.circle(center: center, radius: 28.0)
+            context.fill(face, with: .conicGradient(
+                Gradient(colors: [
+                    Color(red: 0.80, green: 0.78, blue: 0.72),
+                    Color(red: 0.64, green: 0.62, blue: 0.56),
+                    Color(red: 0.82, green: 0.80, blue: 0.74),
+                    Color(red: 0.62, green: 0.60, blue: 0.54),
+                    Color(red: 0.80, green: 0.78, blue: 0.72)
+                ]), center: center, angle: .degrees(24)))
+            context.stroke(face, with: .color(.black.opacity(0.26)), lineWidth: 0.65)
+            context.stroke(BronzeGeometry.circle(center: center, radius: 19.8),
+                           with: .color(.black.opacity(0.14)), lineWidth: 0.5)
+            for index in 0..<6 {
+                let angle = Double(index) * .pi / 3
                 var tick = Path()
-                tick.move(to: BronzeGeometry.point(center: center, radius: inner, angle: angle))
-                tick.addLine(to: BronzeGeometry.point(center: center, radius: 25.9, angle: angle))
-                context.stroke(tick, with: .color(Color(white: 0.22)), lineWidth: 1.05)
+                tick.move(to: BronzeGeometry.point(center: center, radius: 22.0, angle: angle))
+                tick.addLine(to: BronzeGeometry.point(center: center, radius: 26.0, angle: angle))
+                context.stroke(tick, with: .color(Color(white: 0.24).opacity(0.55)), lineWidth: 0.85)
             }
-            let accent = BronzeGeometry.annularSector(center: center, inner: 20.8, outer: 27,
-                                                      start: 68, end: 112)
-            context.fill(accent, with: .color(Color(red: 0.84, green: 0.36, blue: 0.35)))
             if showsLegacyHub {
-                let hub = BronzeGeometry.gear(center: center, outer: 11.4, root: 9.6, teeth: 12)
-                context.fill(hub, with: .color(Color(white: 0.055)))
-                context.stroke(hub, with: .color(.white.opacity(0.75)), lineWidth: 0.55)
-                context.fill(BronzeGeometry.circle(center: center, radius: 6.9),
-                             with: .color(Color(white: 0.035)))
-                context.stroke(BronzeGeometry.circle(center: center, radius: 7.8),
-                               with: .color(.white.opacity(0.12)), lineWidth: 0.6)
+                let hub = BronzeGeometry.gear(center: center, outer: 11.2, root: 9.4, teeth: 12)
+                context.fill(hub, with: .color(Color(white: 0.10)))
+                context.stroke(hub, with: .color(.white.opacity(0.32)), lineWidth: 0.45)
+                context.fill(BronzeGeometry.circle(center: center, radius: 6.8),
+                             with: .color(Color(white: 0.05)))
+                context.stroke(BronzeGeometry.circle(center: center, radius: 7.7),
+                               with: .color(.white.opacity(0.14)), lineWidth: 0.55)
             }
         }
         .frame(width: 58, height: 58)
-        .shadow(color: .black.opacity(0.35), radius: 1.5, x: -0.5, y: 1)
+        .shadow(color: .black.opacity(0.30), radius: 1.4, x: -0.4, y: 0.9)
         .drawingGroup()
     }
 }
@@ -296,23 +300,16 @@ private struct OneTapeBronzeSmallGear: View {
         Canvas { context, _ in
             let center = CGPoint(x: 15, y: 15)
             let outerRadius: CGFloat = showsLegacyHub ? 13.2 : 14.4
-            let tickInner: CGFloat = showsLegacyHub ? 11.6 : 13.1
-            let tickOuter: CGFloat = showsLegacyHub ? 12.7 : 14.1
             context.fill(BronzeGeometry.circle(center: center, radius: outerRadius),
-                         with: .color(Color(red: 0.89, green: 0.90, blue: 0.86)))
-            for index in 0..<20 {
-                let angle = Double(index) * 2 * .pi / 20
-                var tick = Path()
-                tick.move(to: BronzeGeometry.point(center: center, radius: tickInner, angle: angle))
-                tick.addLine(to: BronzeGeometry.point(center: center, radius: tickOuter, angle: angle))
-                context.stroke(tick, with: .color(.black.opacity(0.65)), lineWidth: 0.55)
-            }
+                         with: .color(Color(red: 0.77, green: 0.75, blue: 0.69)))
+            context.stroke(BronzeGeometry.circle(center: center, radius: outerRadius - 0.5),
+                           with: .color(.black.opacity(0.24)), lineWidth: 0.5)
             if showsLegacyHub {
-                let teeth = BronzeGeometry.gear(center: center, outer: 10.9, root: 8.7, teeth: 12)
-                context.fill(teeth, with: .color(Color(white: 0.025)))
-                context.stroke(teeth, with: .color(.black.opacity(0.5)), lineWidth: 0.3)
+                let teeth = BronzeGeometry.gear(center: center, outer: 10.8, root: 8.7, teeth: 12)
+                context.fill(teeth, with: .color(Color(white: 0.08)))
+                context.stroke(teeth, with: .color(.white.opacity(0.22)), lineWidth: 0.35)
                 context.stroke(BronzeGeometry.circle(center: center, radius: 6.4),
-                               with: .color(.white.opacity(0.13)), lineWidth: 0.7)
+                               with: .color(.white.opacity(0.14)), lineWidth: 0.6)
             }
         }
         .frame(width: 30, height: 30)

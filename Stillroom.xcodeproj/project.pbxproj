@@ -42,6 +42,7 @@
 		12A070DB6ABEF6A1B17BD7A9 /* OneTapeLibraryBrowseFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE8A9CA6F0881C5136C39FB /* OneTapeLibraryBrowseFeedback.swift */; };
 		13E50BE7C30F0B7B6934256E /* OrbitTurntableGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15CA6B8671229535167D921 /* OrbitTurntableGeometry.swift */; };
 		1440BC45F4605BF2BB70A8B6 /* OneTapePurchaseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F6B4CA84A7FDC4D8572291 /* OneTapePurchaseUITests.swift */; };
+		14A2B77250F7A3285EEA6FCF /* OneTapeTactileBodyRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAF9580D9E6EC8B2FCE1315 /* OneTapeTactileBodyRenderer.swift */; };
 		14E78AC3CADBB7FF492AA982 /* OneTapeSupportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387E775BAA887FEA5E897389 /* OneTapeSupportStore.swift */; };
 		155FB4BE93A14C21A4ED5A3E /* OneTapeSupportUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F75B0F4DDE5F46C25BA086E /* OneTapeSupportUITests.swift */; };
 		157E277D4A174C5B50F6F395 /* OneTapeArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47367283FAE8ED25101788E /* OneTapeArtworkStore.swift */; };
@@ -61,7 +62,6 @@
 		1AFF1790FBDE2F3FBF77D2C9 /* OneTapeSupportStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C94C45FA4ED706958652E /* OneTapeSupportStoreTests.swift */; };
 		1B055EC861575F7F61D8BDB3 /* OpeningGravitySource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D777241B2B0D49CFD8C2F86 /* OpeningGravitySource.swift */; };
 		1B0FFA547A07593977F5E573 /* OneTapeCustomPrint.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD210A7FEC53200E80FE4122 /* OneTapeCustomPrint.swift */; };
-		D1110A7FEC53200E80FE4101 /* OneTapeDoodleCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1110A7FEC53200E80FE4102 /* OneTapeDoodleCatalog.swift */; };
 		1B7ACCE5B6C58015B22B742D /* CraftedSleeveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3789D22FF3CA4D7148DC1E /* CraftedSleeveView.swift */; };
 		1C9008DFB55B9991B3214F1A /* AlbumFlowMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69C80ADB26FAC7612CC6A782 /* AlbumFlowMotion.swift */; };
 		1C9074B89329650BAC01E5C7 /* SleeveDissolveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A223A8CC263A1A092324AFA /* SleeveDissolveView.swift */; };
@@ -116,6 +116,7 @@
 		378A41C0F303F779A3EC17BD /* OrbitPickupArm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8158557B5E585CEBC3982CF /* OrbitPickupArm.swift */; };
 		387DC30A1E8A5EA6A74086E1 /* OneTapeSupportContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADFB4471DE99DE456019A602 /* OneTapeSupportContent.swift */; };
 		38E78D6E51140547F70E0844 /* OneTapeCrateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9D45636F93FB0858960F60 /* OneTapeCrateView.swift */; };
+		38ED0F4C062E29CFA37429AC /* OneTapeTrackListPrint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABA8D22F1A0893720D8F718 /* OneTapeTrackListPrint.swift */; };
 		38F62C0D2C71D9798B63D7BD /* OrbitArmAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A2B6785E599F911128A6AC /* OrbitArmAppearance.swift */; };
 		397A4DBF1D612CE16E6F5E61 /* OneTapeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D93BAB0B5BD067700F52BC4 /* OneTapeSettingsView.swift */; };
 		39996873B04FEFA8597B5772 /* PlaybackDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4B3797E4EBE5D0EE098ABE /* PlaybackDiagnostics.swift */; };
@@ -139,6 +140,7 @@
 		43D53BE1981B7072F4766C12 /* OneTapeApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1F7180C729C76866B1BFF5 /* OneTapeApplicationDelegate.swift */; };
 		4428B33EF326AC9EBD6B1E2B /* MechanicalCounterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 716F56028DFAABF6B9DCEBA0 /* MechanicalCounterWindow.swift */; };
 		44369C2C2159FE073D9E2E19 /* OrbitTurntableGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC01DFCC4DDF4C631E4F097 /* OrbitTurntableGeometryTests.swift */; };
+		445C19FDF481CCC65D2702C2 /* OneTapeFoilAndOpticBodyRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 878243E098FC69A8FEDA37BC /* OneTapeFoilAndOpticBodyRenderer.swift */; };
 		458286B3FD754F1B247FAFD1 /* SongMemoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64CD6333E9D721099535EDC /* SongMemoriesView.swift */; };
 		463252AB437453716B42670F /* TrackChangeMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E47641AEB29FD20BECD4B2 /* TrackChangeMotion.swift */; };
 		46858C49BC76C540B376A9B4 /* OneTapeTransportCuePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 476365C51108779FE5D6C19D /* OneTapeTransportCuePolicy.swift */; };
@@ -182,6 +184,7 @@
 		5619C403B0495E11EA6B301C /* OneTapeGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FA04F6F9BB0BB544218391 /* OneTapeGridView.swift */; };
 		5677C089F196CB41C1833B04 /* OneTapeOpeningPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F1DD3CB774C35889603EE2 /* OneTapeOpeningPreferences.swift */; };
 		56A9BC3EBCB1B9C5B2F2FEDB /* CraftedCabinetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FABFB7CB732BA939765C1F /* CraftedCabinetView.swift */; };
+		571DBC44511969E0A2B89056 /* OneTapeTiltMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13ED7525C06286CB7402FD6D /* OneTapeTiltMonitor.swift */; };
 		5757E57EAE14F5494CB5DCAE /* OneTapeSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15DA2D7599887172C9CCB62 /* OneTapeSourcesView.swift */; };
 		579AC292F30AB311CA173DA5 /* CraftTrackSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D57E3CB7DADB4F30E63153 /* CraftTrackSelection.swift */; };
 		57F5726DF97A2A1B53D785D1 /* MediaOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832FFAB220E8133FB541A4F9 /* MediaOverrides.swift */; };
@@ -194,7 +197,6 @@
 		5DFF51EC23EDE32C39102642 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B36E49F5EF413CBD00B912 /* SettingsScreen.swift */; };
 		5E1AA018047E27FD7B369420 /* GeistPixel-Square.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AF070C576221C642BA7D3B7B /* GeistPixel-Square.ttf */; };
 		5E4246B38D04D958FF40579A /* RoomMotionVisibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9CFF61C08DA053CB07A094 /* RoomMotionVisibility.swift */; };
-		842D4F3CB1B64853B93BD72B /* OneTapeHalftoneControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163226408B1A479A9B0FE713 /* OneTapeHalftoneControls.swift */; };
 		5EC38C9C016194A54D1E4FD5 /* OneTapeHalftoneEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F338660F6060E0DEF8C2A959 /* OneTapeHalftoneEditorView.swift */; };
 		60C6C23E4506288A6183D2FA /* OneTapeTransportGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBCEE610BBE51EF4F61561D /* OneTapeTransportGeometryTests.swift */; };
 		60FEB240FECF40891D17F637 /* MusicImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FD1C27C7946BAE4276A5F35 /* MusicImport.swift */; };
@@ -252,6 +254,7 @@
 		82B92D68885C56BA7C824E22 /* OrbitRecordArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563CD0DACC5DE4F2119D806F /* OrbitRecordArt.swift */; };
 		8348ECD14D2440923C481B71 /* OneTapeTransportSoundServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E35CAB80349E7338DDCA07B /* OneTapeTransportSoundServiceTests.swift */; };
 		8407DBDE067B94216AEDABC3 /* MusicCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4C4135DD6B546A4D620A76 /* MusicCollection.swift */; };
+		842D4F3CB1B64853B93BD72B /* OneTapeHalftoneControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163226408B1A479A9B0FE713 /* OneTapeHalftoneControls.swift */; };
 		84494DE132DC6C65F6CBFD8E /* PaperFragmentLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269162CE5A74AFC8C84FF4C1 /* PaperFragmentLayout.swift */; };
 		8482ACD00FC09F346361E5F0 /* OneTapeBespokeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C2477FE04D106990281E335 /* OneTapeBespokeGeometry.swift */; };
 		84E2A082AB51F33709B12F0A /* RacingSansOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5BD4593FB35B47B9AC6996B3 /* RacingSansOne-Regular.ttf */; };
@@ -354,6 +357,7 @@
 		C93A24715396458E6589403E /* OrbitHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2571683D3289EE722835645 /* OrbitHomeView.swift */; };
 		C949D69ACBD15652A222814F /* CoverImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D104975F7AE93F97A30A7596 /* CoverImportTests.swift */; };
 		C9A327BE9810EC494F54FE33 /* OneTapeCrystalMetalCassette.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF68B973A2C3D81FC16DCBA /* OneTapeCrystalMetalCassette.swift */; };
+		CA375CE9FE17170A774856A7 /* OneTapeHoloFoilOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB920E1315BD99B3588F92FD /* OneTapeHoloFoilOverlay.swift */; };
 		CA8C660E8A1E21D0F396CCA9 /* CormorantGaramond-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CE8D34E07BD50389F38CBA86 /* CormorantGaramond-MediumItalic.ttf */; };
 		CB7EEE088F07CB895B5F68A3 /* SystemMediaSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB824D400CEB6D05EBB9E256 /* SystemMediaSession.swift */; };
 		CC59DE37EB9FF129E293BEE1 /* OrbitGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25153473782482CEF44AAE8D /* OrbitGridView.swift */; };
@@ -365,9 +369,11 @@
 		CF12F19A8131BD98B9FB8FA4 /* OneTapeAlbumOpeningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C84184AAFBA614FCF8560E5 /* OneTapeAlbumOpeningTests.swift */; };
 		CF49522EB5FD428926C5DCD3 /* LyricDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = B528DA9AE9EB8662545A3C57 /* LyricDocument.swift */; };
 		CF80C97B2CD330EADD0D53FE /* LyricsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DDBAE3B6E2ED593A1F64FD6 /* LyricsPanel.swift */; };
+		CF8C81AD5513B4F5D489B809 /* OneTapeSurfaceEffectsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F03D903F2FF38DD31478EFA /* OneTapeSurfaceEffectsSection.swift */; };
 		CFA3E5E926CDA9BAE2D3B793 /* OneTapeSourcesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9176188D6BB70D63F93BB7CE /* OneTapeSourcesUITests.swift */; };
 		D06D39C6007B143A76EC112C /* LibraryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A806B023EBE36E38B6C63BE /* LibraryScreen.swift */; };
 		D0AAD60B805717C610F9F4DC /* cz-cylinder-one.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C5313F4A0EF8ED06B23BCE47 /* cz-cylinder-one.m4a */; };
+		D1110A7FEC53200E80FE4101 /* OneTapeDoodleCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1110A7FEC53200E80FE4102 /* OneTapeDoodleCatalog.swift */; };
 		D1269EAA07B51012844EFE2F /* OneTapeBodyStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C168DF578D00633FBAD1BE /* OneTapeBodyStyleTests.swift */; };
 		D132602AAF812712A3A52226 /* OrbitRecordDragTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04212DD2704768A1A0763AE /* OrbitRecordDragTests.swift */; };
 		D13F8470BD79F5F8A9065AEB /* OneTapePlaybackModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE8D6025D6966EF3F3FB252 /* OneTapePlaybackModeTests.swift */; };
@@ -493,11 +499,13 @@
 		132DF616413E55F72B5A26FD /* AlbumCoverFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlbumCoverFlow.swift; sourceTree = "<group>"; };
 		134447A14786A2983083F8AA /* CraftedRecordComposer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CraftedRecordComposer.swift; sourceTree = "<group>"; };
 		13CF7B0C5C6B722A2F57E4A6 /* OneTapeTrackWindupController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeTrackWindupController.swift; sourceTree = "<group>"; };
+		13ED7525C06286CB7402FD6D /* OneTapeTiltMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeTiltMonitor.swift; sourceTree = "<group>"; };
 		144ADF9C51935F3D9086F68B /* AudioPlayback.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioPlayback.swift; sourceTree = "<group>"; };
 		151EE66390B236E3FEF6F87E /* RecordOpeningControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordOpeningControllerTests.swift; sourceTree = "<group>"; };
 		15BD2E639F238C7CABD6A97F /* OneTapeArtworkCropSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeArtworkCropSheet.swift; sourceTree = "<group>"; };
 		16033B8E46F55C92C008BAFC /* OneTapeDrawingPaperService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeDrawingPaperService.swift; sourceTree = "<group>"; };
 		1613CAAB551D0C976BFA7E02 /* OneTapeTransportMaterialTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeTransportMaterialTests.swift; sourceTree = "<group>"; };
+		163226408B1A479A9B0FE713 /* OneTapeHalftoneControls.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeHalftoneControls.swift; sourceTree = "<group>"; };
 		164A898401873CB64FD90DD6 /* OrbitVisualPreferences.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OrbitVisualPreferences.swift; sourceTree = "<group>"; };
 		16B9C86A7E8D059D4BE95C39 /* RoomQueueHome.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoomQueueHome.swift; sourceTree = "<group>"; };
 		1806680FE5209EBE02200692 /* OneTapeInteractionUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeInteractionUITests.swift; sourceTree = "<group>"; };
@@ -506,6 +514,7 @@
 		19B3BC2EEDDF6C20CFF4615F /* OneTapeTrackStep.wav */ = {isa = PBXFileReference; includeInIndex = 1; path = OneTapeTrackStep.wav; sourceTree = "<group>"; };
 		1A1789833DF786EF6C0EF5CF /* RacingSansOne-OFL.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = "RacingSansOne-OFL.txt"; sourceTree = "<group>"; };
 		1A806B023EBE36E38B6C63BE /* LibraryScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibraryScreen.swift; sourceTree = "<group>"; };
+		1ABA8D22F1A0893720D8F718 /* OneTapeTrackListPrint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeTrackListPrint.swift; sourceTree = "<group>"; };
 		1BAE444F22B96AA3F5901E5A /* NavidromeResponse.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NavidromeResponse.swift; sourceTree = "<group>"; };
 		1BCD52B97C98D39353C9BF28 /* CraftCoverEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CraftCoverEditor.swift; sourceTree = "<group>"; };
 		1BDDF0A6B6A7C498C0A0B8E4 /* OneTapeNameSandLayoutTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeNameSandLayoutTests.swift; sourceTree = "<group>"; };
@@ -573,6 +582,7 @@
 		3D39C814C709055DA4B2C29D /* approved-screen-font-sources.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "approved-screen-font-sources.json"; sourceTree = "<group>"; };
 		3D99BECD7730CE878B5C15B2 /* ReferencePlayerLayoutUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReferencePlayerLayoutUITests.swift; sourceTree = "<group>"; };
 		3EEF1EF0C2C6147F3AF73667 /* CraftListeningSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CraftListeningSession.swift; sourceTree = "<group>"; };
+		3F03D903F2FF38DD31478EFA /* OneTapeSurfaceEffectsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeSurfaceEffectsSection.swift; sourceTree = "<group>"; };
 		3F9092F25335759B1BB17610 /* PlayerIntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerIntegrationTests.swift; sourceTree = "<group>"; };
 		4033B8AFE96DFB37AD7C7FFA /* RecordOpeningJourneyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordOpeningJourneyTests.swift; sourceTree = "<group>"; };
 		40C7B9328DD8FA604EC1E0B4 /* OneTapeReelCustomization.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeReelCustomization.swift; sourceTree = "<group>"; };
@@ -703,6 +713,7 @@
 		8672C6400E0D47A8894FBABD /* DMSans-OFL.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = "DMSans-OFL.txt"; sourceTree = "<group>"; };
 		873C73F5710A50837BFC3469 /* OneTapeGlassControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeGlassControl.swift; sourceTree = "<group>"; };
 		874163AB45F95FB273C4D165 /* OneTapeCassetteReadout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCassetteReadout.swift; sourceTree = "<group>"; };
+		878243E098FC69A8FEDA37BC /* OneTapeFoilAndOpticBodyRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeFoilAndOpticBodyRenderer.swift; sourceTree = "<group>"; };
 		87A75C11A215C83C43711038 /* DMMono-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "DMMono-Regular.ttf"; sourceTree = "<group>"; };
 		889141FDEF032289847927B0 /* sea.wav */ = {isa = PBXFileReference; includeInIndex = 1; path = sea.wav; sourceTree = "<group>"; };
 		88F8BF7DDE2540D370313F1F /* PlayerRecordStage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerRecordStage.swift; sourceTree = "<group>"; };
@@ -758,6 +769,7 @@
 		A8A53440B1CB09FE335A8161 /* PlayerStore+OneTapeTransport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PlayerStore+OneTapeTransport.swift"; sourceTree = "<group>"; };
 		A8E3967AAE5B23B3E7D2791C /* CraftedVisibleControlSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CraftedVisibleControlSupport.swift; sourceTree = "<group>"; };
 		A9E062EE340DD0A6B2DD7C40 /* TurntableChromeStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TurntableChromeStateTests.swift; sourceTree = "<group>"; };
+		AAAF9580D9E6EC8B2FCE1315 /* OneTapeTactileBodyRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeTactileBodyRenderer.swift; sourceTree = "<group>"; };
 		AAF7E61BF4661F6C39E3470F /* OrbitPresentationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OrbitPresentationTests.swift; sourceTree = "<group>"; };
 		AB3E187A0A72556486B320FA /* OneTapeBodyCustomization.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBodyCustomization.swift; sourceTree = "<group>"; };
 		AB5D12B7BFFE8C5AA874FA43 /* OneTapeScreenAwakeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenAwakeService.swift; sourceTree = "<group>"; };
@@ -791,7 +803,6 @@
 		BC690CE6A8DC1FC4037CB041 /* NavidromeCatalogRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NavidromeCatalogRepository.swift; sourceTree = "<group>"; };
 		BC8530C6681123F76EA03BA4 /* OneTapeCassettePerformanceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCassettePerformanceUITests.swift; sourceTree = "<group>"; };
 		BD210A7FEC53200E80FE4122 /* OneTapeCustomPrint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCustomPrint.swift; sourceTree = "<group>"; };
-		D1110A7FEC53200E80FE4102 /* OneTapeDoodleCatalog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeDoodleCatalog.swift; sourceTree = "<group>"; };
 		BE2E0098A121A3FC409A50D1 /* OneTapeBodyMaterial.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBodyMaterial.swift; sourceTree = "<group>"; };
 		BE48ABF0E5E451B669E3D5B8 /* ArtworkRasterizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArtworkRasterizer.swift; sourceTree = "<group>"; };
 		BE4C4135DD6B546A4D620A76 /* MusicCollection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MusicCollection.swift; sourceTree = "<group>"; };
@@ -826,6 +837,7 @@
 		CA6FB9485A9D3111BC128670 /* OneTapeBespokeCassette.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBespokeCassette.swift; sourceTree = "<group>"; };
 		CA96DB4C7E0E0F2047DE67B9 /* ImportAlbumCoverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImportAlbumCoverTests.swift; sourceTree = "<group>"; };
 		CB60E30BC8E42C88036B2B77 /* OneTapeSupportDestination.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeSupportDestination.swift; sourceTree = "<group>"; };
+		CB920E1315BD99B3588F92FD /* OneTapeHoloFoilOverlay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeHoloFoilOverlay.swift; sourceTree = "<group>"; };
 		CB9AB4CBAEDB7682F2325D30 /* MechanicalMotionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MechanicalMotionTests.swift; sourceTree = "<group>"; };
 		CBF68B973A2C3D81FC16DCBA /* OneTapeCrystalMetalCassette.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCrystalMetalCassette.swift; sourceTree = "<group>"; };
 		CC92956C5BA65C0D47483FF1 /* RecordOpeningUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordOpeningUITests.swift; sourceTree = "<group>"; };
@@ -840,6 +852,7 @@
 		D07813EE589FC06230019FD5 /* OneTapeReleaseScreenRenderingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeReleaseScreenRenderingTests.swift; sourceTree = "<group>"; };
 		D07BC12693728BDAF9D80498 /* OneTapeCaseArtwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCaseArtwork.swift; sourceTree = "<group>"; };
 		D104975F7AE93F97A30A7596 /* CoverImportTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoverImportTests.swift; sourceTree = "<group>"; };
+		D1110A7FEC53200E80FE4102 /* OneTapeDoodleCatalog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeDoodleCatalog.swift; sourceTree = "<group>"; };
 		D17195B3C1075F6E5553CF58 /* Damion-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "Damion-Regular.ttf"; sourceTree = "<group>"; };
 		D23FF1BB6105F56FA26AE6B5 /* OpeningGravityProjectionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpeningGravityProjectionTests.swift; sourceTree = "<group>"; };
 		D2A36DBD691449AE0C5B40C8 /* cz-src.m4a */ = {isa = PBXFileReference; includeInIndex = 1; path = "cz-src.m4a"; sourceTree = "<group>"; };
@@ -886,7 +899,6 @@
 		F2710316A290254479972EFA /* OrbitChrome.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OrbitChrome.swift; sourceTree = "<group>"; };
 		F28D4CB652DBB6005360ED5F /* OneTapeScreenArt.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenArt.swift; sourceTree = "<group>"; };
 		F2CDBAAC2053B7D9B08A6BD6 /* OneTapeStoreKitTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeStoreKitTests.swift; sourceTree = "<group>"; };
-		163226408B1A479A9B0FE713 /* OneTapeHalftoneControls.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeHalftoneControls.swift; sourceTree = "<group>"; };
 		F338660F6060E0DEF8C2A959 /* OneTapeHalftoneEditorView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeHalftoneEditorView.swift; sourceTree = "<group>"; };
 		F3E572D6E4223A4F8D7A5C3F /* OneTapeCustomArtwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCustomArtwork.swift; sourceTree = "<group>"; };
 		F45C86CBFE7BD83C5DE14F3C /* MechanicalHousing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MechanicalHousing.swift; sourceTree = "<group>"; };
@@ -1108,6 +1120,10 @@
 				FB8AD6996372A680812F948E /* OneTapeTransportKeyVisual.swift */,
 				FF11C63AC539D88BB3425C53 /* OneTapeWaterfallScreen.swift */,
 				295060D4EBF63A837BD5408F /* OneTapeWindowCassette.swift */,
+				CB920E1315BD99B3588F92FD /* OneTapeHoloFoilOverlay.swift */,
+				1ABA8D22F1A0893720D8F718 /* OneTapeTrackListPrint.swift */,
+				878243E098FC69A8FEDA37BC /* OneTapeFoilAndOpticBodyRenderer.swift */,
+				AAAF9580D9E6EC8B2FCE1315 /* OneTapeTactileBodyRenderer.swift */,
 			);
 			name = Player;
 			path = Player;
@@ -1361,6 +1377,7 @@
 				4C5C1FCE7045941748417A35 /* OneTapePrintCustomization.swift */,
 				40C7B9328DD8FA604EC1E0B4 /* OneTapeReelCustomization.swift */,
 				1F9B398EB348B17E9A79F41F /* OneTapeScreenCustomization.swift */,
+				3F03D903F2FF38DD31478EFA /* OneTapeSurfaceEffectsSection.swift */,
 			);
 			name = Customization;
 			path = Customization;
@@ -1455,6 +1472,7 @@
 				FF9AAC03013B178F66FD88B4 /* RoomOrientationAdapter.swift */,
 				6259FC0CA87C1AEA7B684AD4 /* StoreKitOneTapePurchaseService.swift */,
 				BB824D400CEB6D05EBB9E256 /* SystemMediaSession.swift */,
+				13ED7525C06286CB7402FD6D /* OneTapeTiltMonitor.swift */,
 			);
 			name = Services;
 			path = Services;
@@ -2074,6 +2092,12 @@
 				C05F6E275B33FF8236CF7A7A /* PlayerStore+OneTapeTransport.swift in Sources */,
 				FC2ED3BA76ACCE1165A55A8A /* PlayerStore.swift in Sources */,
 				1A255A92036C8F1472691A67 /* RecordOpeningController.swift in Sources */,
+				571DBC44511969E0A2B89056 /* OneTapeTiltMonitor.swift in Sources */,
+				CA375CE9FE17170A774856A7 /* OneTapeHoloFoilOverlay.swift in Sources */,
+				38ED0F4C062E29CFA37429AC /* OneTapeTrackListPrint.swift in Sources */,
+				445C19FDF481CCC65D2702C2 /* OneTapeFoilAndOpticBodyRenderer.swift in Sources */,
+				14A2B77250F7A3285EEA6FCF /* OneTapeTactileBodyRenderer.swift in Sources */,
+				CF8C81AD5513B4F5D489B809 /* OneTapeSurfaceEffectsSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

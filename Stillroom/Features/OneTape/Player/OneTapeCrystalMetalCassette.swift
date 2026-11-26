@@ -273,15 +273,15 @@ struct OneTapeClearShellOverlay: View {
                     lineWidth: 0.9
                 )
 
-            // Subtle crystal glass glare gradient over the whole smoked housing (no stark white box lines).
+            // Refined smoked acrylic glass reflection gradient across the housing.
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [
-                            .white.opacity(0.08),
+                            .white.opacity(0.07),
                             .clear,
-                            .white.opacity(0.02),
-                            .white.opacity(0.06)
+                            .white.opacity(0.015),
+                            .white.opacity(0.05)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -290,20 +290,20 @@ struct OneTapeClearShellOverlay: View {
                 .frame(width: shellFrame.width, height: shellFrame.height)
                 .position(x: shellFrame.midX, y: shellFrame.midY)
 
-            // Subtle smoky 3D molded perimeter wall bevel.
+            // Quiet smoky molded perimeter wall bevel.
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color(white: 0.22).opacity(0.85), lineWidth: 3.5)
-                .frame(width: shellFrame.width - 2.5, height: shellFrame.height - 2.5)
+                .stroke(Color(white: 0.19).opacity(0.78), lineWidth: 3.0)
+                .frame(width: shellFrame.width - 2.2, height: shellFrame.height - 2.2)
                 .position(x: shellFrame.midX, y: shellFrame.midY)
 
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [.white.opacity(0.22), .black.opacity(0.55)],
+                        colors: [.white.opacity(0.18), .clear, .black.opacity(0.45)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 0.9
+                    lineWidth: 0.85
                 )
                 .frame(width: shellFrame.width - 0.8, height: shellFrame.height - 0.8)
                 .position(x: shellFrame.midX, y: shellFrame.midY)
@@ -356,17 +356,17 @@ private struct OneTapeHardwareScrew: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(RadialGradient(colors: [Color(white: 0.22), Color(white: 0.08)], center: .center, startRadius: 1, endRadius: 6.5))
-                .frame(width: 13, height: 13)
-                .overlay { Circle().stroke(.white.opacity(0.24), lineWidth: 0.6) }
+                .fill(RadialGradient(colors: [Color(white: 0.24), Color(white: 0.08)], center: .center, startRadius: 1, endRadius: 6.2))
+                .frame(width: 12.2, height: 12.2)
+                .overlay { Circle().stroke(.white.opacity(0.18), lineWidth: 0.55) }
             Path { p in
-                p.move(to: CGPoint(x: 3.8, y: 6.5))
-                p.addLine(to: CGPoint(x: 9.2, y: 6.5))
-                p.move(to: CGPoint(x: 6.5, y: 3.8))
-                p.addLine(to: CGPoint(x: 6.5, y: 9.2))
+                p.move(to: CGPoint(x: 3.6, y: 6.1))
+                p.addLine(to: CGPoint(x: 8.6, y: 6.1))
+                p.move(to: CGPoint(x: 6.1, y: 3.6))
+                p.addLine(to: CGPoint(x: 6.1, y: 8.6))
             }
-            .stroke(.black.opacity(0.85), lineWidth: 1.3)
-            .frame(width: 13, height: 13)
+            .stroke(.black.opacity(0.78), lineWidth: 1.15)
+            .frame(width: 12.2, height: 12.2)
         }
         .position(center)
     }
@@ -378,10 +378,22 @@ private struct OneTapeHardwareHole: View {
     let dark: Bool
 
     var body: some View {
-        Circle()
-            .fill(dark ? Color(white: 0.40).opacity(0.52) : Color(white: 0.14))
-            .frame(width: 10, height: 10)
-            .overlay { Circle().stroke(.white.opacity(dark ? 0.30 : 0.20), lineWidth: 0.8) }
-            .position(center)
+        Group {
+            if square {
+                RoundedRectangle(cornerRadius: 2.0, style: .continuous)
+                    .fill(dark ? Color(white: 0.18).opacity(0.75) : Color(white: 0.14))
+                    .frame(width: 9.5, height: 9.5)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 2.0, style: .continuous)
+                            .stroke(.white.opacity(dark ? 0.18 : 0.16), lineWidth: 0.65)
+                    }
+            } else {
+                Circle()
+                    .fill(dark ? Color(white: 0.18).opacity(0.75) : Color(white: 0.14))
+                    .frame(width: 10, height: 10)
+                    .overlay { Circle().stroke(.white.opacity(dark ? 0.18 : 0.16), lineWidth: 0.65) }
+            }
+        }
+        .position(center)
     }
 }

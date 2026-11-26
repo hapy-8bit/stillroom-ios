@@ -27,7 +27,26 @@ struct OneTapeMaterialKeySurface: View {
                 ]), center: CGPoint(x: 20, y: 13), startRadius: 0, endRadius: 49))
             var face = context
             face.clip(to: cap)
-            if material.isGlass {
+            if material == .holoFoil {
+                face.fill(cap, with: .linearGradient(
+                    Gradient(colors: [
+                        Color(hue: 0.54, saturation: 0.45, brightness: 0.96).opacity(0.55),
+                        Color(hue: 0.84, saturation: 0.42, brightness: 0.96).opacity(0.45),
+                        Color(hue: 0.14, saturation: 0.40, brightness: 0.98).opacity(0.50)
+                    ]), startPoint: .zero, endPoint: CGPoint(x: 58, y: 58)))
+            } else if material == .disco {
+                for row in 0..<5 {
+                    for col in 0..<5 {
+                        let cell = CGRect(x: CGFloat(col) * 11.6, y: CGFloat(row) * 11.6, width: 10.6, height: 10.6)
+                        let bright = (row + col) % 3 == 0 ? 0.34 : 0.08
+                        face.fill(Path(cell), with: .color(.white.opacity(bright)))
+                    }
+                }
+            } else if material == .circuitGlow {
+                face.stroke(Path(ellipseIn: rect.insetBy(dx: 10, dy: 10)),
+                            with: .color(Color(red: 0.24, green: 0.96, blue: 0.68).opacity(0.48)),
+                            lineWidth: 0.9)
+            } else if material.isGlass {
                 var reflection = Path()
                 reflection.move(to: CGPoint(x: 3, y: 17))
                 reflection.addQuadCurve(to: CGPoint(x: 42, y: 5), control: CGPoint(x: 14, y: -2))
@@ -36,6 +55,18 @@ struct OneTapeMaterialKeySurface: View {
                 face.fill(reflection, with: .linearGradient(
                     Gradient(colors: [.white.opacity(0.46), .white.opacity(0.025)]),
                     startPoint: .zero, endPoint: CGPoint(x: 24, y: 31)))
+            } else if material == .linen {
+                for index in 0..<24 {
+                    let pos = CGFloat(index) * 2.5
+                    var h = Path()
+                    h.move(to: CGPoint(x: 0, y: pos))
+                    h.addLine(to: CGPoint(x: 58, y: pos))
+                    face.stroke(h, with: .color(.black.opacity(0.06)), lineWidth: 0.45)
+                    var v = Path()
+                    v.move(to: CGPoint(x: pos, y: 0))
+                    v.addLine(to: CGPoint(x: pos, y: 58))
+                    face.stroke(v, with: .color(.white.opacity(0.07)), lineWidth: 0.45)
+                }
             } else {
                 for index in 0..<100 {
                     let y = CGFloat(index) * 0.58
@@ -43,7 +74,7 @@ struct OneTapeMaterialKeySurface: View {
                     line.move(to: CGPoint(x: 0, y: y))
                     line.addLine(to: CGPoint(x: 58, y: y))
                     face.stroke(line, with: .color((index % 3 == 0 ? Color.white : .black)
-                        .opacity(material == .brushedAluminum ? 0.06 : 0.04)), lineWidth: 0.18)
+                        .opacity(material == .brushedAluminum || material == .silverFoil ? 0.065 : 0.038)), lineWidth: 0.18)
                 }
             }
             context.stroke(cap, with: .linearGradient(

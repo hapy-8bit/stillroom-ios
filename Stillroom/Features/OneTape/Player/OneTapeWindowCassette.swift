@@ -105,64 +105,38 @@ struct OneTapeWindowShellOverlay: View {
 
             // 3D recessed window inner wall bevel around the stepped opening.
             OneTapeWindowCutoutPolygon()
-                .stroke(Color(red: 0.71, green: 0.695, blue: 0.660), lineWidth: 3.6)
-                .opacity(0.65)
+                .stroke(Color(red: 0.72, green: 0.705, blue: 0.675), lineWidth: 2.8)
+                .opacity(0.55)
                 .mask { OneTapeWindowCutoutPolygon().fill(.white) }
             OneTapeWindowCutoutPolygon()
                 .stroke(
                     LinearGradient(
-                        colors: [.black.opacity(0.24), .white.opacity(0.72)],
+                        colors: [.black.opacity(0.20), .white.opacity(0.66)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1.1
+                    lineWidth: 0.95
                 )
 
-            // Square hole collars matching Window's inner two capstan ports & lower-left embossed tab.
-            ForEach(Array(guidePorts.enumerated()), id: \.offset) { _, port in
-                if port.square {
-                    RoundedRectangle(cornerRadius: 2.2, style: .continuous)
-                        .stroke(Color(red: 0.62, green: 0.60, blue: 0.56), lineWidth: 1.5)
-                        .frame(width: 15, height: 15)
-                        .position(port.center)
-                }
-            }
-            RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                .stroke(.black.opacity(0.14), lineWidth: 0.75)
-                .frame(width: 24, height: 34)
-                .position(x: 42, y: 500)
-
-            // 2. Sculpted raised right label island (`x = 264...342, y = 48...528`) framing A,
-            // One Cassette, and subtitle completely on solid ivory material.
+            // Clean integrated flush right label plane (`x = 264...342, y = 48...528`)
+            // framing A, One Cassette, and subtitle smoothly on warm matte ivory.
             OneTapeRightLabelTabShape()
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.902, green: 0.890, blue: 0.856),
-                            Color(red: 0.854, green: 0.842, blue: 0.808)
+                            Color(red: 0.892, green: 0.882, blue: 0.854),
+                            Color(red: 0.856, green: 0.846, blue: 0.818)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .black.opacity(0.22), radius: 3.0, x: -2.0, y: 1.0)
+                .shadow(color: .black.opacity(0.11), radius: 1.6, x: -1.0, y: 0.5)
             OneTapeRightLabelTabShape()
-                .stroke(.white.opacity(0.58), lineWidth: 0.9)
+                .stroke(.white.opacity(0.50), lineWidth: 0.75)
             OneTapeRightLabelTabShape()
                 .inset(by: 4.5)
-                .stroke(.black.opacity(0.085), lineWidth: 0.7)
-
-            // Upper & lower right corner recessed notch tabs visible at outer chassis margin.
-            ForEach([CGFloat(32), CGFloat(544)], id: \.self) { yPos in
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(Color(red: 0.56, green: 0.54, blue: 0.49).opacity(0.50))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 2, style: .continuous)
-                            .stroke(.black.opacity(0.22), lineWidth: 0.6)
-                    }
-                    .frame(width: 16, height: 9)
-                    .position(x: 353, y: yPos)
-            }
+                .stroke(.black.opacity(0.055), lineWidth: 0.6)
         }
         .frame(width: size.width, height: size.height, alignment: .topLeading)
         .drawingGroup()

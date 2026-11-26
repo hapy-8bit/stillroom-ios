@@ -10,6 +10,7 @@ struct OneTapePlayerFace: View {
     var artwork: UIImage? = nil
     var artworkColor: OneTapeTransportMaterial.RGB? = nil
     var visualization: AudioVisualizationSignal? = nil
+    var tiltMonitor: OneTapeTiltMonitor? = nil
     var tapeProgress: Double = 0
     var quarterTurns: Int = 0
     var trackChangeMotionRate: Double? = nil
@@ -46,9 +47,21 @@ struct OneTapePlayerFace: View {
 
     private func face(scale: CGFloat, windowSize: CGSize) -> some View {
         ZStack(alignment: .topLeading) {
-            OneTapeBodySurface(appearance: appearance, artworkColor: artworkColor, artwork: artwork)
-                .opacity(bodyReveal)
-                .accessibilityHidden(true)
+            Group {
+                if let tiltMonitor, appearance.bodyMaterial?.usesTilt == true {
+                    OneTapeLiveBodySurface(
+                        appearance: appearance,
+                        artworkColor: artworkColor,
+                        artwork: artwork,
+                        tiltMonitor: tiltMonitor,
+                        visualization: visualization
+                    )
+                } else {
+                    OneTapeBodySurface(appearance: appearance, artworkColor: artworkColor, artwork: artwork)
+                }
+            }
+            .opacity(bodyReveal)
+            .accessibilityHidden(true)
 
             OneTapeReelMotion(rate: trackChangeMotionRate ?? (windingDirection != 0
                 ? Double(windingDirection) * OneTapeTransportRules.windingRate : readout.isPlaying ? 1 : 0),
@@ -122,9 +135,10 @@ struct OneTapePlayerFace: View {
                 isEnabled: glassInteractionEnabled,
                 onTap: onGlass,
                 onSetOpen: onSetGlassOpen
-            ) { progress in
+            ) { progress, isTransitioning in
                 OneTapeGlassCover(appearance: appearance, cassetteReadout: cassetteReadout, customPrint: customPrint,
-                    progress: progress, supplyAngle: supplyAngle, takeupAngle: takeupAngle,
+                    tiltMonitor: tiltMonitor, progress: progress, isTransitioning: isTransitioning,
+                    supplyAngle: supplyAngle, takeupAngle: takeupAngle,
                     tapeProgress: frame.progress, reelExposureDegrees: frame.exposureDegrees)
             }
             .frame(width: 353.91, height: 553.8)
@@ -184,13 +198,17 @@ struct OneTapePlayerFace: View {
     }
 
     private var printAccessibilitySummary: String {
+        let foilNote = appearance.tapeFoilStyle == .holo ? "，全息镭射箔" : ""
+        if appearance.trackListEnabled {
+            return "曲目表印花\(foilNote)"
+        }
         if appearance.customDrawingID != nil {
-            return "自定义画作"
+            return "自定义画作\(foilNote)"
         }
         if appearance.customArtworkID != nil {
-            return "自定义照片印花"
+            return "自定义照片印花\(foilNote)"
         }
-        return "\(appearance.isBrandPrintVisible ? "One Cassette 印字" : "无品牌印字")，\(appearance.doodleStyle.customizationTitle)"
+        return "\(appearance.isBrandPrintVisible ? "One Cassette 印字" : "无品牌印字")，\(appearance.doodleStyle.customizationTitle)\(foilNote)"
     }
 }
 

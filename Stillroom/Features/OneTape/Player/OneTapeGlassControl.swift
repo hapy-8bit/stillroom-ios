@@ -1,19 +1,31 @@
 import SwiftUI
 
+/// Interactive sliding glass controller over the cassette compartment.
+/// Drives a continuous animatable `progress` (`0` = closed, `1` = open) so
+/// incomplete drags spring smoothly back along their original travel path
+/// instead of snapping when the gesture ends.
 struct OneTapeGlassControl<Cover: View>: View {
     let isOpen: Bool
     let summary: String
     let isEnabled: Bool
     let onTap: () -> Void
     let onSetOpen: (Bool) -> Void
-    private let content: (CGFloat) -> Cover
+    private let content: (CGFloat, Bool) -> Cover
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @GestureState(resetTransaction: Transaction(animation: .spring(response: 0.5, dampingFraction: 0.9, blendDuration: 0)))
-    private var dragTranslation: CGSize? = nil
-    @State private var session: DragSession?
+    // Used strictly as a system-cancellation sentinel when a touch is aborted
+    // without delivering `onEnded`; `renderedProgress` owns all animation state.
+    @GestureState private var isGestureActive = false
+    @State private var renderedProgress: CGFloat
+    @State private var isTransitioning = false
+    @State private var dragStartOpen: Bool?
+    @State private var settleGeneration = 0
     @State private var isPresent = true
+
+    private var settleSpring: Animation {
+        .spring(response: 0.5, dampingFraction: 0.9, blendDuration: 0)
+    }
 
     init(
         isOpen: Bool,
@@ -21,7 +33,7 @@ struct OneTapeGlassControl<Cover: View>: View {
         isEnabled: Bool = true,
         onTap: @escaping () -> Void,
         onSetOpen: @escaping (Bool) -> Void,
-        @ViewBuilder content: @escaping (CGFloat) -> Cover
+        @ViewBuilder content: @escaping (CGFloat, Bool) -> Cover
     ) {
         self.isOpen = isOpen
         self.summary = summary
@@ -29,6 +41,7 @@ struct OneTapeGlassControl<Cover: View>: View {
         self.onTap = onTap
         self.onSetOpen = onSetOpen
         self.content = content
+        _renderedProgress = State(initialValue: isOpen ? 1 : 0)
     }
 
     private var canInteract: Bool { isEnabled && isPresent && scenePhase == .active }
@@ -36,7 +49,7 @@ struct OneTapeGlassControl<Cover: View>: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                content(progress)
+                content(renderedProgress, isTransitioning)
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
                 Color.clear
@@ -58,39 +71,36 @@ struct OneTapeGlassControl<Cover: View>: View {
             .accessibilityAction(named: Text("打开玻璃")) { setFromAccessibility(true) }
             .accessibilityAction(named: Text("关闭玻璃")) { setFromAccessibility(false) }
         }
-        .transaction { transaction in
-            if reduceMotion {
-                transaction.animation = nil
-                transaction.disablesAnimations = true
+        .onAppear {
+            isPresent = true
+            let resting: CGFloat = isOpen ? 1 : 0
+            if dragStartOpen == nil && !isTransitioning && renderedProgress != resting {
+                renderedProgress = resting
             }
         }
-        .onAppear { isPresent = true }
         .onDisappear {
             isPresent = false
-            cancelInteraction()
+            cancelInteraction(animated: false)
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { cancelInteraction() }
+            if phase != .active { cancelInteraction(animated: false) }
         }
         .onChange(of: isEnabled) { _, enabled in
-            if !enabled { cancelInteraction() }
+            if !enabled { cancelInteraction(animated: true) }
         }
-        .onChange(of: dragTranslation) { _, translation in
-            // A system-cancelled touch has no onEnded callback. GestureState
-            // still resets, so discard its snapshot before the next touch.
-            if translation == nil { cancelInteraction() }
+        .onChange(of: isGestureActive) { _, active in
+            // A system-cancelled touch resets GestureState without firing onEnded.
+            // Smoothly return the glass along its original direction to `isOpen`.
+            if !active, dragStartOpen != nil {
+                cancelInteraction(animated: true)
+            }
         }
-    }
-
-    private var progress: CGFloat {
-        guard canInteract, let translation = dragTranslation, let session else {
-            return isOpen ? 1 : 0
+        .onChange(of: isOpen) { _, open in
+            guard dragStartOpen == nil else { return }
+            let target: CGFloat = open ? 1 : 0
+            guard abs(renderedProgress - target) > 0.001 else { return }
+            animateSettle(to: target, commit: nil)
         }
-        return OneTapeGlassMotion.resolve(
-            isOpen: session.wasOpen,
-            translationY: translation.height,
-            height: session.height
-        ).progress
     }
 
     private var accessibilityValue: String {
@@ -99,60 +109,114 @@ struct OneTapeGlassControl<Cover: View>: View {
     }
 
     private func interaction(height: CGFloat) -> some Gesture {
-        // Native Button press notifications can arrive after its release action.
-        // An exclusive gesture resolves each touch as exactly one drag OR tap,
+        // Exclusive gesture resolves each touch as exactly one drag OR tap,
         // avoiding a consumed-drag flag that can swallow the next real tap.
         DragGesture(minimumDistance: OneTapeGlassMotion.minimumDragDistance, coordinateSpace: .local)
-            .onChanged { _ in
+            .onChanged { drag in
                 guard canInteract else { return }
-                if session == nil { session = DragSession(wasOpen: isOpen, height: height) }
+                if dragStartOpen == nil {
+                    dragStartOpen = isOpen
+                }
+                settleGeneration += 1
+                isTransitioning = true
+                let startOpen = dragStartOpen ?? isOpen
+                let resolved = OneTapeGlassMotion.resolve(
+                    isOpen: startOpen,
+                    translationY: drag.translation.height,
+                    height: height
+                )
+                var direct = Transaction(animation: nil)
+                direct.disablesAnimations = true
+                withTransaction(direct) {
+                    renderedProgress = resolved.progress
+                }
             }
             .exclusively(before: TapGesture())
-            .updating($dragTranslation) { value, translation, transaction in
-                if canInteract, case .first(let drag) = value {
-                    translation = drag.translation
-                } else {
-                    translation = nil
+            .updating($isGestureActive) { value, state, _ in
+                if canInteract, case .first = value {
+                    state = true
                 }
-                // Follow the finger directly; the caller chooses the verified
-                // settling animation when it accepts the released endpoint.
-                transaction.animation = nil
             }
             .onEnded { value in
                 guard canInteract else { return }
                 if case .second = value {
-                    session = nil
+                    dragStartOpen = nil
                     onTap()
                     return
                 }
-                guard case .first(let drag) = value, let session else { return }
+                guard case .first(let drag) = value else { return }
+                let startOpen = dragStartOpen ?? isOpen
+                dragStartOpen = nil
                 let result = OneTapeGlassMotion.resolve(
-                    isOpen: session.wasOpen,
+                    isOpen: startOpen,
                     translationY: drag.translation.height,
                     predictedTranslationY: drag.predictedEndTranslation.height,
-                    height: session.height
+                    height: height
                 )
-                withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.9, blendDuration: 0)) {
-                    onSetOpen(result.targetIsOpen)
-                    self.session = nil
-                }
+                let target: CGFloat = result.targetIsOpen ? 1 : 0
+                animateSettle(to: target, commit: result.targetIsOpen)
             }
     }
 
-    private func cancelInteraction() {
-        session = nil
+    private func animateSettle(to target: CGFloat, commit: Bool?) {
+        settleGeneration += 1
+        let generation = settleGeneration
+        let alreadyMounted = isTransitioning
+        isTransitioning = true
+
+        if reduceMotion {
+            var direct = Transaction(animation: nil)
+            direct.disablesAnimations = true
+            withTransaction(direct) {
+                if let commit { onSetOpen(commit) }
+                renderedProgress = target
+            }
+            isTransitioning = false
+            return
+        }
+
+        let runSpring = {
+            guard settleGeneration == generation else { return }
+            // Keep both optical stacks alive until the spring logically finishes so
+            // partial drags rebound continuously back in their original direction.
+            withAnimation(settleSpring, completionCriteria: .logicallyComplete) {
+                if let commit { onSetOpen(commit) }
+                renderedProgress = target
+            } completion: {
+                if settleGeneration == generation, dragStartOpen == nil {
+                    isTransitioning = false
+                }
+            }
+        }
+
+        if alreadyMounted {
+            runSpring()
+        } else {
+            // When triggered from Customizer/Accessibility while idle, let SwiftUI
+            // mount both glass layers at the starting progress on this frame first.
+            DispatchQueue.main.async(execute: runSpring)
+        }
+    }
+
+    private func cancelInteraction(animated: Bool) {
+        dragStartOpen = nil
+        let target: CGFloat = isOpen ? 1 : 0
+        if animated && !reduceMotion && abs(renderedProgress - target) > 0.001 {
+            animateSettle(to: target, commit: nil)
+        } else {
+            settleGeneration += 1
+            var direct = Transaction(animation: nil)
+            direct.disablesAnimations = true
+            withTransaction(direct) {
+                renderedProgress = target
+            }
+            isTransitioning = false
+        }
     }
 
     private func setFromAccessibility(_ open: Bool) {
         guard canInteract else { return }
-        cancelInteraction()
-        withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.9, blendDuration: 0)) {
-            onSetOpen(open)
-        }
-    }
-
-    private struct DragSession {
-        let wasOpen: Bool
-        let height: CGFloat
+        dragStartOpen = nil
+        animateSettle(to: open ? 1 : 0, commit: open)
     }
 }

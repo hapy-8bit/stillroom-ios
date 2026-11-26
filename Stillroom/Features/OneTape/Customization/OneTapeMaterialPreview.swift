@@ -15,7 +15,11 @@ struct OneTapeMaterialPreview: View {
         GeometryReader { geometry in
             let palette = material.palette()
             ZStack(alignment: .topLeading) {
-                OneTapeBodySurface(appearance: appearance)
+                OneTapeBodySurface(
+                    appearance: appearance,
+                    tilt: CGSize(width: 0.34, height: -0.22),
+                    energy: 0.62
+                )
                 RoundedRectangle(cornerRadius: 2.5)
                     .fill(palette.lcd.materialColor)
                     .frame(width: 264.39, height: 165.63)

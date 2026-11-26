@@ -9,9 +9,7 @@ enum OneTapeDoodleCatalog {
     }
 
     static let sharedClassicStyles: [OneTapeAppearance.DoodleStyle] = [
-        .climber, .smile, .bicycle, .cat, .fishing, .tightrope, .swing, .sleeper,
-        .creatures, .people, .shapes, .plants, .daydream, .faces,
-        .littleMachines, .soundMaze, .circuitGarden, .orbitDoodles
+        .climber, .smile, .bicycle, .cat, .fishing, .tightrope, .swing, .sleeper
     ]
 
     static let allOverStyles: [OneTapeAppearance.DoodleStyle] = [
@@ -19,33 +17,52 @@ enum OneTapeDoodleCatalog {
         .littleMachines, .soundMaze, .circuitGarden, .orbitDoodles
     ]
 
-    /// Shell-specific list matching original `1001e41f4` + `1001e1e1c`:
-    /// `.none` first, followed by shell-paired `19..80` exclusives, then shared `1..18` where supported.
+    /// Returns whether a built-in illustration belongs to the given shell cutout,
+    /// matching Cassette 1.0.5 `TapeDoodle.fits(skin:)` (`0x1002018c4`).
+    static func supports(
+        _ doodle: OneTapeAppearance.DoodleStyle,
+        on tapeStyle: OneTapeAppearance.TapeStyle
+    ) -> Bool {
+        doodle == .none || supportedStyles(for: tapeStyle).contains(doodle)
+    }
+
+    /// Shell-specific illustration list matching Cassette 1.0.5 `TapeDoodle.available(for:)`
+    /// (`0x100204d74`), aligned to each active shell's physical window silhouette so artwork
+    /// frames the spools and aperture without awkward clipping.
     static func supportedStyles(for tapeStyle: OneTapeAppearance.TapeStyle) -> [OneTapeAppearance.DoodleStyle] {
         switch tapeStyle {
         case .classic, .graphite:
             return [.none, .dog, .caterpillar, .seesaw, .city, .wild] + sharedClassicStyles
         case .memphis:
-            return [.none, .city, .wild, .birds, .abseil, .frame] + sharedClassicStyles
+            // Woven linen uses the classic shell geometry; match Cassette's solid `Tape` set.
+            return [.none, .city, .wild] + sharedClassicStyles
         case .clear:
             return [.none, .ants, .peek, .snail, .pilgrims]
         case .window:
             return [.none, .napper, .cleaner, .theatre]
-        case .armature:
-            return [.none, .slide, .moon, .tv, .mountain]
-        case .silverOval:
-            return [.none, .lifter, .hammock, .skipping, .circus]
-        case .twinArc:
-            return [.none, .headphones, .heart, .umbrella, .hills]
         case .bronze:
-            return [.none, .submarine, .blimp, .dachshund, .zeppelin]
+            // Exact Cassette 1.0.5 `MouldedBronzeWedge` pairing for the diagonal wedge cutout.
+            return [.none, .megaphone, .cone, .spotlight, .lighthouse]
+        case .armature:
+            // Wide horizontal window pairing (`SmokeBand` + `OliveArch` silhouettes).
+            return [.none, .aquarium, .cinema, .picturehouse, .bus, .boat, .sofa, .train]
         case .fieldNotes:
+            // Pressed-rib waisted peanut aperture (`PaperRibbed` + `SunsetLabel` silhouettes).
             return [
                 .none,
-                .sunglasses, .binoculars, .robot, .aviator,
-                .aquarium, .cinema, .table, .picturehouse,
-                .bus, .boat, .sofa, .train
+                .lifter, .hammock, .skipping, .circus,
+                .sunglasses, .binoculars, .robot, .aviator
             ]
+        case .silverOval:
+            // Sleek horizontal capsule oval aperture (`SilverOval` + `WaistWindow` silhouettes).
+            return [
+                .none,
+                .runners, .hotdog, .pool, .stadium,
+                .submarine, .blimp, .dachshund, .zeppelin
+            ]
+        case .twinArc:
+            // Figure-8 dual-arc aperture (`TwinArc` + dual-lens `PanelClear` silhouettes).
+            return [.none, .headphones, .heart, .umbrella, .hills, .frog, .tandem, .diver]
         case .strata:
             return [.none, .megaphone, .cone, .spotlight, .lighthouse] + allOverStyles
         case .facet:

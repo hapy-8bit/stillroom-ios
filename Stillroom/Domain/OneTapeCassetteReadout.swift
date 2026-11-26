@@ -3,24 +3,61 @@ import Foundation
 /// The complete loaded queue, shared by local and server tracks. A missing
 /// duration stays unknown; adding only the known subset would understate it.
 struct OneTapeCassetteReadout: Equatable, Sendable {
+    struct TrackEntry: Equatable, Sendable {
+        let number: Int
+        let title: String
+        let artist: String
+        let durationSeconds: TimeInterval
+        let isCurrent: Bool
+    }
+
     let trackCount: Int
     let durationSeconds: TimeInterval?
+    let entries: [TrackEntry]
+    let albumTitle: String
+    let artistName: String
 
     static let empty = Self(queueIDs: [], tracks: [])
 
-    init(queueIDs: [String], tracks: [Track]) {
+    init(queueIDs: [String], tracks: [Track], currentTrackID: String? = nil) {
         trackCount = queueIDs.count
-        let lookup = Dictionary(tracks.map { ($0.id, $0.duration) },
+        let lookup = Dictionary(tracks.map { ($0.id, $0) },
                                 uniquingKeysWith: { _, last in last })
         var sum: Double = 0
         var complete = !queueIDs.isEmpty
-        for id in queueIDs {
-            guard let seconds = lookup[id], seconds.isFinite, seconds > 0 else {
+        var collected: [TrackEntry] = []
+        collected.reserveCapacity(queueIDs.count)
+        var resolvedAlbum = ""
+        var resolvedArtist = ""
+
+        for (index, id) in queueIDs.enumerated() {
+            guard let track = lookup[id] else {
+                complete = false
+                continue
+            }
+            if resolvedAlbum.isEmpty, !track.album.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                resolvedAlbum = track.album
+            }
+            if resolvedArtist.isEmpty, !track.artist.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                resolvedArtist = track.artist
+            }
+            collected.append(TrackEntry(
+                number: index + 1,
+                title: track.title,
+                artist: track.artist,
+                durationSeconds: track.duration,
+                isCurrent: currentTrackID != nil && track.id == currentTrackID
+            ))
+            let seconds = track.duration
+            guard seconds.isFinite, seconds > 0 else {
                 complete = false
                 continue
             }
             sum += seconds
         }
+        entries = collected
+        albumTitle = resolvedAlbum
+        artistName = resolvedArtist
         durationSeconds = complete && sum.isFinite && sum < Double(Int.max / 4) ? sum : nil
     }
 

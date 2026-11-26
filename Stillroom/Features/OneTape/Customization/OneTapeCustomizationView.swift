@@ -191,9 +191,8 @@ struct OneTapeCustomizationView: View {
     private var tapeChoices: some View {
         let sections: [(title: String, styles: [OneTapeAppearance.TapeStyle])] = [
             ("经典", OneTapeAppearance.TapeStyle.classicGroup),
-            ("精工", OneTapeAppearance.TapeStyle.bespoke),
-            ("模塑", OneTapeAppearance.TapeStyle.sculpted),
-            ("复古", OneTapeAppearance.TapeStyle.retroGroup)
+            ("极简", OneTapeAppearance.TapeStyle.bespoke),
+            ("质感", OneTapeAppearance.TapeStyle.retroGroup)
         ]
         return VStack(alignment: .leading, spacing: 12) {
             ForEach(Array(sections.enumerated()), id: \.offset) { index, section in
@@ -209,21 +208,17 @@ struct OneTapeCustomizationView: View {
     }
 
     private func tapeTile(for style: OneTapeAppearance.TapeStyle) -> some View {
-        let hasStudioMarker = style == .graphite || style == .clear || style == .window || style == .memphis
+        let hasStudioMarker = style != .classic
         return OneTapeCustomizationTile(
             title: style.customizationTitle,
             selected: appearance.tapeStyle == style,
             studioMarker: hasStudioMarker,
             identifier: "customization.tape.\(style.rawValue)"
         ) {
-            select { $0.tapeStyle = style }
+            select { $0.selectTapeStyle(style) }
         } thumbnail: {
-            if style.isSculpted {
-                OneTapeMouldedThumbnail(style: style)
-            } else {
-                OneTapeTapeThumbnail(appearance: previewAppearance(for: style), showsPrint: false)
-                    .allowsHitTesting(false)
-            }
+            OneTapeTapeThumbnail(appearance: previewAppearance(for: style), showsPrint: false)
+                .allowsHitTesting(false)
         }
     }
 

@@ -6,24 +6,66 @@ struct OneTapeDoodleArtwork: View {
     let appearance: OneTapeAppearance
 
     private var descriptor: (name: String, isPortraitTemplate: Bool)? {
-        OneTapeDoodleCatalog.inkAsset(for: appearance.doodleStyle)
+        guard OneTapeDoodleCatalog.supports(appearance.doodleStyle, on: appearance.tapeStyle) else {
+            return nil
+        }
+        return OneTapeDoodleCatalog.inkAsset(for: appearance.doodleStyle)
     }
 
     private var ink: Color {
-        // Recovered from Cassette DoodleLayer (0x1001e3bdc):
-        // dark shells use warm cream (0.93, 0.91, 0.87), light shells use near-black (0.10, 0.10, 0.11).
-        appearance.tapeStyle.usesLightInk
-            ? Color(red: 0.93, green: 0.91, blue: 0.87)
-            : Color(red: 0.10, green: 0.10, blue: 0.11)
+        // Material-calibrated pad-print pigment tones so line art integrates
+        // physically into each shell surface rather than floating flat on top.
+        switch appearance.tapeStyle {
+        case .classic:
+            return Color(red: 0.11, green: 0.11, blue: 0.125)
+        case .graphite:
+            return Color(red: 0.93, green: 0.91, blue: 0.86)
+        case .armature:
+            return Color(red: 0.90, green: 0.91, blue: 0.93)
+        case .fieldNotes:
+            // Warm archival espresso ink on pressed oatmeal paper
+            return Color(red: 0.19, green: 0.155, blue: 0.125)
+        case .silverOval:
+            // Laser-etched cool graphite on raw brushed aluminum
+            return Color(red: 0.145, green: 0.165, blue: 0.195)
+        case .twinArc:
+            // Soft pearl-mist ivory harmonizing with muted Nordic slate-blue
+            return Color(red: 0.91, green: 0.94, blue: 0.97)
+        case .memphis:
+            // Warm charcoal textile ink integrated into woven linen
+            return Color(red: 0.17, green: 0.155, blue: 0.14)
+        case .bronze:
+            // Deep oxidized umber-bronze etched ink on satin champagne bronze
+            return Color(red: 0.16, green: 0.13, blue: 0.095)
+        case .window:
+            return Color(red: 0.13, green: 0.13, blue: 0.145)
+        case .clear:
+            return Color(red: 0.94, green: 0.94, blue: 0.93)
+        default:
+            return appearance.tapeStyle.usesLightInk
+                ? Color(red: 0.93, green: 0.91, blue: 0.87)
+                : Color(red: 0.10, green: 0.10, blue: 0.11)
+        }
+    }
+
+    private var inkOpacity: Double {
+        switch appearance.tapeStyle {
+        case .clear: 0.92
+        case .classic, .graphite, .twinArc: 0.90
+        case .fieldNotes, .bronze, .armature, .window: 0.88
+        case .silverOval, .memphis: 0.86
+        default: 0.90
+        }
+    }
+
+    private var usesClassicShellLighting: Bool {
+        appearance.tapeStyle == .classic || appearance.tapeStyle == .graphite || appearance.tapeStyle == .memphis
     }
 
     private var stencilSize: CGSize {
-        // The botanical redraw fills its source canvas, unlike the thumbnail's
-        // template margins. Inset its logical print area to keep both birds' heads
-        // inside the physical mask; this is artwork geometry, not screen pixels.
-        appearance.doodleStyle == .wild
-            ? CGSize(width: 528, height: 352)
-            : CGSize(width: 622.973682, height: 415.315788)
+        // Logical print area matching the 1536×1024 landscape template alignment
+        // with `OneTapeDoodleClassicMask` (artwork geometry, not screen pixels).
+        CGSize(width: 622.973682, height: 415.315788)
     }
 
     var body: some View {
@@ -39,11 +81,18 @@ struct OneTapeDoodleArtwork: View {
     }
 
     private func printLayer(_ descriptor: (name: String, isPortraitTemplate: Bool)) -> some View {
-        ZStack(alignment: .topLeading) {
-            ink
+        let isLight = appearance.tapeStyle.usesLightInk
+        return ZStack(alignment: .topLeading) {
+            // Subtle physical pad-print micro-relief catchlight beneath the pigment.
+            (isLight ? Color.black.opacity(0.24) : Color.white.opacity(0.26))
                 .frame(width: 376.33, height: 576)
                 .mask { stencil(descriptor).foregroundStyle(.white) }
-            if !appearance.tapeStyle.isSculpted {
+                .offset(x: isLight ? 0.35 : 0.3, y: isLight ? 0.45 : 0.4)
+            ink
+                .opacity(inkOpacity)
+                .frame(width: 376.33, height: 576)
+                .mask { stencil(descriptor).foregroundStyle(.white) }
+            if usesClassicShellLighting {
                 Image("OneTapeDoodleClassicLight")
                     .renderingMode(.original)
                     .resizable()
@@ -52,8 +101,21 @@ struct OneTapeDoodleArtwork: View {
                     // across SwiftUI's mask/group boundary can expose the
                     // white lighting layer as luminous paint on iOS.
                     .colorMultiply(ink)
-                    .opacity(0.35)
+                    .opacity(0.32)
                     .mask { stencil(descriptor).foregroundStyle(.white) }
+            } else {
+                // Soft directional studio light falloff tailored to non-classic shells.
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(isLight ? 0.10 : 0.08),
+                        .clear,
+                        Color.black.opacity(isLight ? 0.14 : 0.09)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(width: 376.33, height: 576)
+                .mask { stencil(descriptor).foregroundStyle(.white) }
             }
         }
         .compositingGroup()
