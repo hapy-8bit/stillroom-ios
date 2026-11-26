@@ -16,7 +16,7 @@ final class OneTapeAlbumOpeningTests: XCTestCase {
 
         XCTAssertEqual(folded.frame.midX, origin.midX, accuracy: 0.001)
         XCTAssertEqual(folded.frame.minY, origin.midY - folded.frame.height * 0.25, accuracy: 0.001)
-        XCTAssertLessThan(folded.angle, -60)
+        XCTAssertLessThan(folded.angle, -25)
         XCTAssertEqual(standing.angle, 0)
         XCTAssertGreaterThan(standing.frame.midY, viewport.height / 2)
         XCTAssertLessThan(standing.frame.midY, viewport.height * 0.7)
@@ -81,28 +81,29 @@ final class OneTapeAlbumOpeningTests: XCTestCase {
         let negative = pose(.folded, viewport: viewport, pitch: -36)
         XCTAssertEqual(positive.frame, negative.frame)
         XCTAssertEqual(positive.frame.midX, viewport.width / 2, accuracy: 0.001)
-        XCTAssertEqual(center.angle, -18, accuracy: 0.001)
-        XCTAssertGreaterThan(negative.angle, -75)
-        XCTAssertLessThan(negative.angle, -60)
-        XCTAssertGreaterThan(positive.angle, -70)
-        XCTAssertLessThan(positive.angle, -60)
+        XCTAssertEqual(center.angle, -5, accuracy: 0.001)
+        XCTAssertEqual(negative.angle, -34, accuracy: 0.001)
+        XCTAssertEqual(positive.angle, -78, accuracy: 0.001)
     }
 
     func testFoldedShelfOpensFocalCaseAndTucksUpperAndLowerNeighbors() {
         let viewport = CGSize(width: 393, height: 759)
-        let upper = CGRect(x: 32, y: 150, width: 329, height: 132)
-        let middle = CGRect(x: 32, y: 330, width: 329, height: 132)
-        let lower = CGRect(x: 32, y: 510, width: 329, height: 132)
+        let upper = CGRect(x: 32, y: 150, width: 329, height: 136)
+        let middle = CGRect(x: 32, y: 330, width: 329, height: 136)
+        let lower = CGRect(x: 32, y: 510, width: 329, height: 136)
         let topPose = pose(.folded, viewport: viewport, origin: upper, pitch: -0.75)
         let focalPose = pose(.folded, viewport: viewport, origin: middle, pitch: 0)
         let bottomPose = pose(.folded, viewport: viewport, origin: lower, pitch: 0.75)
 
-        XCTAssertEqual(focalPose.angle, -18, accuracy: 0.001,
-                       "The centered focal cassette opens comfortably to display its horizontal artwork.")
-        XCTAssertLessThan(topPose.angle, focalPose.angle - 35)
-        XCTAssertLessThan(bottomPose.angle, focalPose.angle - 30)
+        XCTAssertEqual(focalPose.angle, -5, accuracy: 0.001,
+                       "The centered focal cassette stands nearly upright to display its full horizontal artwork.")
+        XCTAssertLessThan(topPose.angle, focalPose.angle - 15)
+        XCTAssertLessThan(bottomPose.angle, topPose.angle - 25,
+                          "Lower foreground cassettes fold further forward than upper background cassettes.")
         XCTAssertGreaterThan(topPose.angle, -90, "Upper cases keep their front artwork visible.")
         XCTAssertGreaterThan(bottomPose.angle, -90, "Lower cases stay on their front face instead of flipping to the back.")
+        XCTAssertEqual(OneTapeCaseGeometry.crateClearanceFraction(for: 0), 0, accuracy: 0.001)
+        XCTAssertGreaterThan(OneTapeCaseGeometry.crateClearanceFraction(for: 0.5), 0.95)
     }
 
 

@@ -25,25 +25,33 @@ struct OneTapeCrateView: View {
             let viewportWidth = max(0, viewport.size.width)
             let width = min(max(0, viewportWidth - 52), 440)
             let scale = width / 329.0
-            let slotHeight = 132 * scale
+            let slotHeight = 136 * scale
             let caseHeight = width * OneTapeCaseGeometry.portraitAspectRatio
             let anchorIndex = collections.firstIndex { $0.id == scrollID } ?? 0
 
             ScrollView(.vertical) {
-                LazyVStack(spacing: 10 * scale) {
+                LazyVStack(spacing: 8 * scale) {
                     ForEach(Array(collections.enumerated()), id: \.element.id) { index, collection in
                         let isCurrent = currentCollectionID == collection.id
                         GeometryReader { geometry in
                             let center = geometry.frame(in: .named("oneTapeCrate")).midY
-                            let focalY = viewport.size.height * 0.46
+                            let focalY = viewport.size.height * 0.45
                             let relative = reduceMotion
                                 ? CGFloat(0)
-                                : min(1.0, max(-1.0, (center - focalY) / max(1, viewport.size.height * 0.46)))
+                                : min(1.0, max(-1.0, (center - focalY) / max(1, viewport.size.height * 0.44)))
                             let focus = reduceMotion ? 1.0 : OneTapeCaseGeometry.crateFocus(for: relative)
-                            let angle = reduceMotion ? -18.0 : OneTapeCaseGeometry.shelfAngle(pitch: relative)
-                            let cardScale = reduceMotion ? 1.0 : (0.90 + 0.11 * focus)
-                            let depthDim = reduceMotion ? 0.0 : (1.0 - focus) * 0.28
+                            let angle = reduceMotion ? -5.0 : OneTapeCaseGeometry.shelfAngle(pitch: relative)
+                            // Upper cases subtly recede in scale; lower foreground cases stay full-width.
+                            let cardScale: CGFloat = reduceMotion
+                                ? 1.0
+                                : (relative < 0 ? CGFloat(0.89 + 0.11 * focus) : CGFloat(0.95 + 0.05 * focus))
+                            let depthDim = reduceMotion ? 0.0 : (1.0 - focus) * (relative < 0 ? 0.34 : 0.22)
+                            let lowerClearance = reduceMotion
+                                ? CGFloat(0)
+                                : OneTapeCaseGeometry.crateClearanceFraction(for: relative) * (82 * scale)
+                            let visualOffsetY = -28 * scale + lowerClearance
                             let frame = geometry.frame(in: .named("oneTapeLibrary"))
+                            let tapFrame = frame.offsetBy(dx: 0, dy: lowerClearance)
 
                             ZStack {
                                 OneTapeSpatialCase(
@@ -52,27 +60,23 @@ struct OneTapeCrateView: View {
                                     angle: angle,
                                     isCurrent: isCurrent,
                                     isPlaying: isPlaying && isCurrent,
-                                    sheenShift: relative * 0.22
+                                    sheenShift: relative * 0.20,
+                                    dimAmount: depthDim
                                 )
                                 .frame(width: width, height: caseHeight)
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 4.5 * scale, style: .continuous)
-                                        .fill(.black.opacity(depthDim))
-                                        .allowsHitTesting(false)
-                                }
-                                .scaleEffect(cardScale)
+                                .scaleEffect(cardScale, anchor: .top)
                                 .shadow(
-                                    color: .black.opacity(0.32 + 0.36 * focus),
-                                    radius: (8 + 16 * focus) * scale,
-                                    y: (6 + 10 * focus) * scale
+                                    color: .black.opacity(0.30 + 0.34 * focus),
+                                    radius: (8 + 14 * focus) * scale,
+                                    y: (6 + 9 * focus) * scale
                                 )
                                 .frame(width: width, height: slotHeight, alignment: .top)
-                                .offset(y: (slotHeight - caseHeight * 0.62) * 0.35)
+                                .offset(y: visualOffsetY)
                                 Color.clear
                             }
                             .frame(width: width, height: slotHeight)
                             .contentShape(Rectangle())
-                            .onTapGesture { onSelect(collection, frame, relative) }
+                            .onTapGesture { onSelect(collection, tapFrame, relative) }
                             .offset(y: selectedID != nil && selectedID != collection.id
                                 ? (frame.midY < selectedOriginY ? -140 : 140) * scale : 0)
                             .opacity(selectedID == collection.id ? (hidesSelected ? 0 : 1)
@@ -82,11 +86,13 @@ struct OneTapeCrateView: View {
                             .accessibilityLabel("\(collection.title) by \(collection.subtitle)")
                             .accessibilityValue("\(collection.songCount) 首")
                             .accessibilityIdentifier("crate.album.\(index)")
-                            .accessibilityAction { onSelect(collection, frame, relative) }
+                            .accessibilityAction { onSelect(collection, tapFrame, relative) }
                         }
                         .frame(width: width, height: slotHeight)
                         .frame(width: viewportWidth, height: slotHeight, alignment: .center)
-                        .zIndex(zPriority(index: index, anchorIndex: anchorIndex, count: collections.count))
+                        // Strictly monotonic physical layering: closer/lower cassettes always stay
+                        // in front of cassettes further back so z-order never snaps mid-scroll.
+                        .zIndex(Double(index))
                         .modifier(OneTapeLibraryReloadReveal(ready: isReloadReady,
                             order: min(abs(index - anchorIndex), 4)))
                         .id(collection.id)
@@ -97,8 +103,8 @@ struct OneTapeCrateView: View {
                 }
                 .scrollTargetLayout()
                 .frame(width: viewportWidth, alignment: .center)
-                .padding(.top, max(124, viewport.size.height * 0.25))
-                .padding(.bottom, max(180, viewport.size.height * 0.38))
+                .padding(.top, max(130, viewport.size.height * 0.25))
+                .padding(.bottom, max(220, viewport.size.height * 0.42))
             }
             .frame(width: viewportWidth, height: max(0, viewport.size.height), alignment: .top)
             .coordinateSpace(name: "oneTapeCrate")
@@ -125,19 +131,12 @@ struct OneTapeCrateView: View {
             .mask {
                 LinearGradient(stops: [
                     .init(color: .clear, location: 0),
-                    .init(color: .black, location: 0.09),
+                    .init(color: .black, location: 0.08),
                     .init(color: .black, location: 0.90),
                     .init(color: .clear, location: 1)
                 ], startPoint: .top, endPoint: .bottom)
             }
         }
-    }
-
-    /// Gives the centered scroll anchor the highest z-order so the opened focal cassette
-    /// overlaps neighboring tucked cases cleanly in true physical crate layering.
-    private func zPriority(index: Int, anchorIndex: Int, count: Int) -> Double {
-        let distance = abs(index - anchorIndex)
-        return Double(max(0, count - distance))
     }
 }
 
@@ -150,6 +149,7 @@ struct OneTapeSpatialCase: View, Animatable {
     var isCurrent = false
     var isPlaying = false
     var sheenShift: CGFloat = 0
+    var dimAmount: Double = 0
 
     var animatableData: Double {
         get { angle }
@@ -161,6 +161,9 @@ struct OneTapeSpatialCase: View, Animatable {
             let projection = OneTapeCaseProjection(width: geometry.size.width, angle: angle)
             let faceSize = CGSize(width: projection.width, height: projection.height)
             let spineSize = CGSize(width: projection.width, height: projection.thickness)
+            let frontShade = min(0.55, dimAmount + abs(sin(angle * .pi / 180)) * 0.14)
+            let spineShade = min(0.45, dimAmount * 0.72)
+
             ZStack(alignment: .topLeading) {
                 side(projection.left)
                 side(projection.right)
@@ -175,7 +178,7 @@ struct OneTapeSpatialCase: View, Animatable {
                     sheenShift: sheenShift
                 )
                 .frame(width: faceSize.width, height: faceSize.height)
-                .overlay(.black.opacity(min(0.14, abs(sin(angle * .pi / 180)) * 0.14)))
+                .overlay(.black.opacity(frontShade))
                 .projectionEffect(OneTapeCaseProjection.transform(size: faceSize,
                     corners: projection.showsFront ? projection.front : projection.back))
                 .opacity(min(1, abs(cos(angle * .pi / 180)) * 1_000))
@@ -187,6 +190,7 @@ struct OneTapeSpatialCase: View, Animatable {
                     isCurrent: isCurrent
                 )
                 .frame(width: spineSize.width, height: spineSize.height)
+                .overlay(.black.opacity(spineShade))
                 .projectionEffect(OneTapeCaseProjection.transform(size: spineSize, corners: projection.spine))
                 // SwiftUI can draw a singular projection as identity. Hide
                 // the zero-area face so no unrotated spine flashes at 0°.
@@ -206,7 +210,7 @@ struct OneTapeSpatialCase: View, Animatable {
         .fill(Color(white: 0.055))
         .overlay {
             Path { path in path.addLines(points); path.closeSubpath() }
-                .stroke(.white.opacity(0.20), lineWidth: 0.7)
+                .stroke(.white.opacity(max(0.06, 0.20 * (1 - dimAmount))), lineWidth: 0.7)
         }
     }
 }

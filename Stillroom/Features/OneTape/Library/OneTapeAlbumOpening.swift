@@ -8,21 +8,38 @@ enum OneTapeCaseGeometry {
     static let portraitAspectRatio: CGFloat = 211.7 / 329
     static let landscapeAspectRatio: CGFloat = 329 / 211.7
 
-    /// Asymmetric focal fan-out curve for the vertical crate:
-    /// The centered focal cassette tilts open to -18° (exposing ~95% of its
-    /// full horizontal artwork plus top spine), while cases above and below tuck
-    /// neatly back (-74° upper / -68° lower) without flipping onto the blank back.
+    /// Continuous physical crate-flipping curve (`pitch ∈ [-1, 1]`):
+    /// - `pitch == 0` (focal center): stands nearly upright at `-5°` facing the user.
+    /// - `pitch < 0` (upper stack behind focal): reclines smoothly (`-5° → -34°`) in the back of the crate.
+    /// - `pitch > 0` (lower cards in front of focal): folds smoothly forward (`-5° → -78°`),
+    ///   exposing crisp J-card top spines while clearing the sightline to the focal cover.
     static func shelfAngle(pitch: CGFloat) -> Double {
         let clamped = Double(min(1, max(-1, pitch)))
-        let focus = crateFocus(for: pitch)
-        let resting = clamped < 0 ? -74.0 : -68.0
-        return resting + (-18.0 - resting) * focus
+        if clamped <= 0 {
+            let t = smoothstep(0, 1.0, -clamped)
+            return -5.0 - 29.0 * t
+        } else {
+            let t = smoothstep(0, 0.90, clamped)
+            return -5.0 - 73.0 * t
+        }
     }
 
     /// Smooth bell weight in [0, 1] peaking at 1.0 when a crate case is at focal center.
     static func crateFocus(for pitch: CGFloat) -> Double {
         let clamped = Double(min(1, max(-1, pitch)))
-        return exp(-clamped * clamped * 4.2)
+        return exp(-clamped * clamped * 3.6)
+    }
+
+    /// Smooth clearance fraction in [0, 1] that glides lower folded cassettes down just
+    /// below the focal case's bottom rim so the focal cover stays 100% unobstructed.
+    static func crateClearanceFraction(for pitch: CGFloat) -> CGFloat {
+        guard pitch > 0 else { return 0 }
+        return CGFloat(smoothstep(0, 0.52, Double(min(1, pitch))))
+    }
+
+    private static func smoothstep(_ edge0: Double, _ edge1: Double, _ x: Double) -> Double {
+        let t = min(1, max(0, (x - edge0) / max(0.0001, edge1 - edge0)))
+        return t * t * (3 - 2 * t)
     }
 
     /// Both Crate (`.shelf`) and 3-column Horizontal Grid (`.grid`) share one

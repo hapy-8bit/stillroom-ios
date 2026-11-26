@@ -174,7 +174,7 @@ struct OneTapeCaseArtwork: View {
                             .font(.custom("GeistMono-Regular", size: 6.2 * scale))
                         Spacer(minLength: 2 * scale)
                         if let year = collection.year, (1920...2099).contains(year) {
-                            Text("\(year)")
+                            Text(String(year))
                                 .font(.custom("GeistMono-Regular", size: 6.0 * scale))
                         }
                     }
