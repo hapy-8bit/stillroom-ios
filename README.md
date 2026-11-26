@@ -6,7 +6,26 @@
 
 2026-11-21 补充：同步要求覆盖代码、资源、配置、脚本和项目文档等全部应纳入版本管理的改动。每次交付前须确认提交已推送至远程仓库；同步失败时明确说明，不将仅保存在本机的提交当作已完成同步。
 
-下方是既有版本的历史记录，其中的构建与安装流程不作为后续任务的默认要求。记录中引用的 Evidence、Artifacts、分析与生成目录为本机资料，未随公开源码上传。
+下方的记录包含历史版本与最新迭代。记录中引用的 Evidence、Artifacts、分析与生成目录为本机资料，未随公开源码上传。
+
+## 2026-11-26 / build100 开屏小动画、封膜拆封、设置页重塑与底部菜单栏流畅交互
+
+在同日桌面小组件复刻的基础上，继续在本独立 iOS 工程内完成以下视觉与交互迭代（不涉及鸿蒙与网页工程）：
+
+- **方案 B · 自动开屏迷你卡座动画（[`OneTapeLaunchSplashView.swift`](Stillroom/Features/OneTape/OneTapeLaunchSplashView.swift)、[`OneTapeOpening.swift`](Stillroom/Domain/OneTapeOpening.swift)、[`OneTapeOpeningPreferences.swift`](Stillroom/Services/OneTapeOpeningPreferences.swift)、[`OneTapeOpeningStore.swift`](Stillroom/State/OneTapeOpeningStore.swift)）**：区别于原版黑色随身听＋耳机线，实现约 `1.9s` 居中的 Braun 极简暖白＋石墨横向迷你卡座冷启动仪式（顶部朱红播放键机械下压＋机身微回弹、琥珀电源灯点亮、左侧模拟 VU 表针摆动、右侧双 6 齿盘芯加速起转后平滑淡入主播放页）；支持系统减少动效，并在设置页提供「启动时播放开屏动画」开关与「演示」入口。
+- **首次拆包装引导（[`OneTapeOpeningMechanism.swift`](Stillroom/Features/OneTape/OneTapeOpeningMechanism.swift)、[`OneTapeOpeningScene.swift`](Stillroom/Features/OneTape/OneTapeOpeningScene.swift)）**：全屏贴合实时磁带机的半透明磨砂防静电封袋（热压边纹、单色丝印、底部质检条码）与纸质虚线撕条＋朱红「拆封 >」拉环；采用统一无冲突手势，支持轻点拉环自动拆封及左右拖动 1:1 实时拉开/合拢，拖动时上下封膜沿贝塞尔弧线类似拉锁般向上下平滑翻开（保留纯净封膜质感，非金属拉链外观）。
+- **设置页视觉与合规功能补齐（[`OneTapeProCard.swift`](Stillroom/Features/OneTape/Panels/OneTapeProCard.swift)、[`OneTapeWidgetPreview.swift`](Stillroom/Features/OneTape/Panels/OneTapeWidgetPreview.swift)、[`OneTapeSettingsView.swift`](Stillroom/Features/OneTape/Panels/OneTapeSettingsView.swift)、[`OneTapeReport.swift`](Stillroom/Domain/OneTapeReport.swift)、[`OneTapeReportView.swift`](Stillroom/Features/OneTape/Panels/OneTapeReportView.swift)、[`OneTapeAboutView.swift`](Stillroom/Features/OneTape/Panels/OneTapeAboutView.swift)）**：
+  - 顶部新增日系 Type IV 典藏卡风格的 **One Cassette Pro 付费卡片**（拉丝黑曜石底面、右侧缓慢自转的精密盘芯线稿、`InstrumentSerif-Italic` 标题、象牙白主按钮与恢复购买入口，实时联动 StoreKit 状态与价格）；
+  - **小组件展示台**改为单卡居中陈列，顶部提供 `小 | 中 | 大` 分段切换与深/浅配色切换，保留卡片播控键试按；
+  - 新增精简版 **投诉举报**（6 类举报类型两列胶囊、对象/1000 字说明/证据/回复邮箱表单、预填邮件草稿与一键复制）及 **关于我们**（品牌徽章、版本、隐私政策/用户协议/付费说明、`APP 备案号 京ICP备2026048583号-3A` 外链与复制、撤销本机隐私偏好确认、邮箱一键复制）。
+- **底部菜单栏流畅度与原版风格点击交互（[`OneTapeNavigation.swift`](Stillroom/Features/OneTape/OneTapeNavigation.swift)、[`OneTapeRoot.swift`](Stillroom/Features/OneTape/OneTapeRoot.swift)）**：
+  - 底部栏与右上角设置按钮改为常驻挂载，显隐仅做纯 GPU `offset`/`scale`/`opacity` 临界阻尼弹簧过渡，移除根容器级 `menuVisible` 动画 diff，右侧微缩磁带改用 `.drawingGroup()` 离屏缓存并收束为 `64pt` 原版比例，`OneTapeInsightsView` 首次打开后保活；
+  - 修复带歌名展开态下高亮胶囊跳变问题，改为三页统一 `matchedGeometryEffect` 液态玻璃滑移透镜，补回 iOS 26+ 按压回弹 `OneTapeDockPressStyle`、再点当前页原地脉冲、横向手指划选切页与右侧圆形按钮平滑缩放交叉渐变。
+- **开发约束更新（[`AGENTS.md`](AGENTS.md)）**：记录 2026-11-26 新约定——仅使用唯一指定模拟器 `Stillroom iPhone 16 Pro`（`77CFAADC-0D5D-4E5B-864A-B5019465A476`）保留数据覆盖安装，不再新建/开启额外模拟器，并按 50 次改动滚动清理旧缓存与旧包（已清理多余模拟器与 build 50 之前缓存，保留全部文档）。
+- **验证与未验证边界（如实记录）**：
+  - 源码检查：`node Tools/check-source.cjs` 通过（`443` 个维护代码文件，最大 `681` 行，无超 `800` 行文件）。
+  - 模拟器构建与预览：最新代码已编译（含 `StillroomWidget.appex` 校验）并保留数据覆盖安装、启动到 `Stillroom iPhone 16 Pro`（`77CFAADC-0D5D-4E5B-864A-B5019465A476`，`PID 76893`）。
+  - 未验证项：本次最终一轮修改（去掉金属拉链样式、新增 Pro 艺术卡片 / 投诉举报 / 关于我们、底部菜单栏重构）后未在隔离模拟器重跑自动化单元/UI 测试，亦未再次打包覆盖至 USB 真机（此前中间版本已成功签名安装拉起至 USB `iPhone 16 Pro` 供用户验收）。
 
 ## 2026-11-26 / build100 桌面小组件与设置页实时预览复刻（WidgetKit + AppIntents）
 

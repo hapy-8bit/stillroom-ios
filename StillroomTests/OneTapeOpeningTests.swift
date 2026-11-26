@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import SwiftUI
 import XCTest
 @testable import Stillroom
 
@@ -28,188 +29,125 @@ final class OneTapeOpeningTests: XCTestCase {
         XCTAssertTrue(OneTapeOpeningPreferences(defaults: defaults).shouldPresent)
     }
 
-    func testClosedBoxCannotInsertBeforeTheFirstGesture() {
-        let (_, preferences) = preferences()
-        let feedback = OpeningFeedback()
-        let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback)
-        XCTAssertFalse(store.insert(reducedMotion: false))
-        XCTAssertEqual(store.journey.stage, .waiting)
-        XCTAssertEqual(store.caseOpening, 0)
-        XCTAssertEqual(store.caseOpacity, 1)
-        XCTAssertEqual(store.heroOpacity, 0)
-        XCTAssertEqual(feedback.preparations, 0)
-    }
-
-    func testOpeningStopsForInspectionWithoutSoundOrCompletingFirstUse() async throws {
+    func testPartialTearPreservesNotchAndDoesNotCompleteOpening() {
         let (defaults, preferences) = preferences()
         let feedback = OpeningFeedback()
         let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.02)
-        store.openCase(reducedMotion: false)
-        store.openCase(reducedMotion: false)
-        try await waitUntil { store.journey.stage == .inspecting }
-        try await Task.sleep(for: .milliseconds(100))
-        XCTAssertEqual(store.journey.stage, .inspecting)
+
+        store.updateTear(translationX: 90, trackWidth: 300, reducedMotion: false)
+        XCTAssertEqual(store.journey.stage, .tearing)
+        XCTAssertEqual(store.tearProgress, 0.30, accuracy: 0.001)
+        XCTAssertGreaterThan(feedback.ticks, 0)
+
+        store.endTear(predictedTranslationX: 95, trackWidth: 300, reducedMotion: false)
+        XCTAssertEqual(store.journey.stage, .sealed)
+        XCTAssertEqual(store.tearProgress, 0.30, accuracy: 0.001)
         XCTAssertTrue(store.isVisible)
-        XCTAssertEqual(store.heroOpacity, 1)
-        XCTAssertEqual(store.caseOpacity, 0)
-        XCTAssertEqual(store.insertion, 0)
-        XCTAssertEqual(feedback.latches, 0)
+        XCTAssertEqual(feedback.snaps, 0)
         XCTAssertFalse(defaults.bool(forKey: OneTapeOpeningPreferences.completionKey))
     }
 
-    func testTwoGesturesTurnAndKeepThePlayerCassetteVisibleAtArrival() async throws {
+    func testFullRightDragCommitsStripSnapPeelAndCompletion() async throws {
         let (defaults, preferences) = preferences()
         let feedback = OpeningFeedback()
         let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.04)
         var stages: [OneTapeOpeningStage] = []
         let observation = store.$journey.sink { stages.append($0.stage) }
-        feedback.onLatch = { [weak store] in
-            XCTAssertEqual(store?.journey.stage, .inserting)
-            XCTAssertEqual(store?.clockwiseTurn, 1)
-            XCTAssertEqual(store?.homeReveal, 1)
-        }
-        store.openCase(reducedMotion: false)
-        try await waitUntil { store.journey.stage == .inspecting }
-        XCTAssertTrue(store.insert(reducedMotion: false))
-        XCTAssertFalse(store.insert(reducedMotion: false))
-        XCTAssertEqual(store.journey.stage, .rotating)
-        XCTAssertEqual(store.clockwiseTurn, 1)
-        XCTAssertEqual(store.insertion, 0)
-        XCTAssertEqual(feedback.latches, 0)
+
+        store.updateTear(translationX: 120, trackWidth: 300, reducedMotion: false)
+        store.updateTear(translationX: 210, trackWidth: 300, reducedMotion: false)
+        store.endTear(predictedTranslationX: 240, trackWidth: 300, reducedMotion: false)
+
+        XCTAssertEqual(store.journey.stage, .peeling)
+        XCTAssertEqual(feedback.snaps, 1)
         XCTAssertFalse(defaults.bool(forKey: OneTapeOpeningPreferences.completionKey))
+
         try await waitUntil { !store.isVisible }
-        XCTAssertEqual(stages, [.waiting, .unboxing, .inspecting, .rotating, .inserting, .revealing, .finished])
-        XCTAssertEqual(store.insertion, 1)
-        XCTAssertEqual(store.heroOpacity, 1)
-        XCTAssertEqual(store.homeReveal, 1)
+        XCTAssertEqual(stages, [.sealed, .tearing, .peeling, .finished])
+        XCTAssertEqual(store.tearProgress, 1)
+        XCTAssertEqual(store.stripDetachment, 1)
+        XCTAssertEqual(store.sleevePeel, 1)
+        XCTAssertEqual(store.sleeveOpacity, 0)
         XCTAssertEqual(feedback.preparations, 1)
         XCTAssertEqual(feedback.latches, 1)
         XCTAssertTrue(defaults.bool(forKey: OneTapeOpeningPreferences.completionKey))
         observation.cancel()
     }
 
-    func testSkipDuringRotationCancelsPendingSoundAndCannotCompleteAReplay() async throws {
+    func testSkipAndReplayResetOpeningCleanlyWithoutStaleCompletion() async throws {
         let (_, preferences) = preferences()
         let feedback = OpeningFeedback()
         let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.08)
-        store.openCase(reducedMotion: false)
-        try await waitUntil { store.journey.stage == .inspecting }
-        store.insert(reducedMotion: false)
+
+        store.commitUnwrap(reducedMotion: false)
         store.finish()
         store.replay()
-        try await Task.sleep(for: .milliseconds(200))
+        try await Task.sleep(for: .milliseconds(160))
+
         XCTAssertTrue(store.isVisible)
-        XCTAssertEqual(store.journey.stage, .waiting)
-        XCTAssertEqual(store.caseOpacity, 1)
-        XCTAssertEqual(store.homeReveal, 0)
+        XCTAssertEqual(store.journey.stage, .sealed)
+        XCTAssertEqual(store.tearProgress, 0)
+        XCTAssertEqual(store.sleevePeel, 0)
+        XCTAssertEqual(store.sleeveOpacity, 1)
         XCTAssertEqual(feedback.latches, 0)
     }
 
-    func testBackgroundDuringUnboxingCancelsAndCanRetryBothGestures() async throws {
-        let (defaults, preferences) = preferences()
-        let feedback = OpeningFeedback()
-        let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.02)
-        store.openCase(reducedMotion: false)
-        store.suspend()
-        try await Task.sleep(for: .milliseconds(80))
-        XCTAssertEqual(store.journey.stage, .waiting)
-        XCTAssertEqual(store.heroOpacity, 0)
-        XCTAssertEqual(store.caseOpening, 0)
-        XCTAssertFalse(defaults.bool(forKey: OneTapeOpeningPreferences.completionKey))
-        store.openCase(reducedMotion: false)
-        try await waitUntil { store.journey.stage == .inspecting }
-        store.insert(reducedMotion: false)
-        try await waitUntil { !store.isVisible }
-        XCTAssertEqual(feedback.latches, 1)
-        XCTAssertEqual(store.insertion, 1)
-    }
-
-    func testBackgroundDuringApproachCancelsCompletionAndPendingSound() async throws {
+    func testBackgroundDuringPeelCancelsCompletionAndResetsSleeve() async throws {
         let (defaults, preferences) = preferences()
         let feedback = OpeningFeedback()
         let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.1)
-        store.openCase(reducedMotion: false)
-        try await waitUntil { store.journey.stage == .inspecting }
-        store.insert(reducedMotion: false)
-        try await waitUntil { store.journey.stage == .inserting }
-        XCTAssertEqual(feedback.latches, 0)
+
+        store.commitUnwrap(reducedMotion: false)
+        XCTAssertEqual(store.journey.stage, .peeling)
         store.suspend()
-        try await Task.sleep(for: .milliseconds(200))
-        XCTAssertEqual(store.insertion, 0)
-        XCTAssertEqual(store.homeReveal, 0)
-        XCTAssertEqual(store.journey.stage, .waiting)
+        try await Task.sleep(for: .milliseconds(180))
+
+        XCTAssertEqual(store.journey.stage, .sealed)
+        XCTAssertEqual(store.tearProgress, 0)
+        XCTAssertEqual(store.sleevePeel, 0)
         XCTAssertEqual(feedback.latches, 0)
         XCTAssertFalse(defaults.bool(forKey: OneTapeOpeningPreferences.completionKey))
     }
 
-    func testReducedMotionStillWaitsForTwoActionsWithoutTurningOrSliding() async throws {
+    func testReducedMotionUnwrapCompletesWithoutSlideMotion() async throws {
         let (_, preferences) = preferences()
         let feedback = OpeningFeedback()
-        let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.05)
-        store.openCase(reducedMotion: true)
-        try await waitUntil { store.journey.stage == .inspecting }
-        XCTAssertTrue(store.isVisible)
-        XCTAssertEqual(store.caseOpening, 0)
-        XCTAssertEqual(store.extraction, 0)
-        store.insert(reducedMotion: true)
-        XCTAssertEqual(store.clockwiseTurn, 0)
-        XCTAssertEqual(store.insertion, 0)
-        XCTAssertEqual(store.homeReveal, 0)
-        XCTAssertEqual(feedback.latches, 0)
+        let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.04)
+
+        XCTAssertEqual(store.playerPose(reducedMotion: true)?.deckScale, 1)
+        XCTAssertTrue(store.commitUnwrap(reducedMotion: true))
+        XCTAssertEqual(feedback.snaps, 1)
         try await waitUntil { !store.isVisible }
-        XCTAssertEqual(store.homeReveal, 1)
+        XCTAssertEqual(store.sleeveOpacity, 0)
         XCTAssertEqual(feedback.latches, 1)
     }
 
-    func testUnavailableSoundStillOpensPlayerAndReportsAnExplicitNotice() async throws {
+    func testUnavailableSoundStillCompletesAndReportsExplicitNotice() async throws {
         let (_, preferences) = preferences()
         let feedback = OpeningFeedback()
         feedback.fail = true
-        let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.01)
-        store.openCase(reducedMotion: true)
-        try await waitUntil { store.journey.stage == .inspecting }
-        store.insert(reducedMotion: true)
+        let store = OneTapeOpeningStore(preferences: preferences, feedback: feedback, durationScale: 0.02)
+
+        store.commitUnwrap(reducedMotion: true)
         try await waitUntil { !store.isVisible }
         XCTAssertNotNil(store.notice)
     }
 
-    func testDirectionsAndThresholdsKeepShortViewingDragsOutOfTheDeck() {
-        func action(_ stage: OneTapeOpeningStage, _ x: CGFloat, _ y: CGFloat,
-                    _ predictedX: CGFloat? = nil) -> OneTapeOpeningGesture.Action {
-            OneTapeOpeningGesture.action(stage: stage, translation: CGSize(width: x, height: y),
-                predicted: CGSize(width: predictedX ?? x, height: y), width: 393)
-        }
-        XCTAssertEqual(action(.waiting, 4, -90), .openCase)
-        XCTAssertEqual(action(.waiting, 0, 150), .none)
-        XCTAssertEqual(action(.waiting, -180, 2), .none)
-        XCTAssertEqual(action(.inspecting, 140, 0), .none)
-        XCTAssertEqual(action(.inspecting, -45, 0, -500), .none)
-        XCTAssertEqual(action(.inspecting, -90, 0, -110), .none)
-        XCTAssertEqual(action(.inspecting, -170, 8), .insert)
-        XCTAssertEqual(action(.inspecting, -85, 5, -320), .insert)
-        XCTAssertEqual(action(.inspecting, -160, -200), .none)
-        XCTAssertEqual(action(.unboxing, -200, 0), .none)
-        XCTAssertEqual(action(.rotating, -200, 0), .none)
-        XCTAssertEqual(OneTapeOpeningGesture.yaw(translationX: 60, width: 393), 13.740458, accuracy: 0.001)
-        XCTAssertEqual(OneTapeOpeningGesture.yaw(translationX: -1000, width: 393), -34)
-        XCTAssertEqual(OneTapeOpeningGesture.yaw(translationX: .nan, width: 393), 0)
+    func testTearRulesBidirectionalZipperCommitThresholdsAndDetents() {
+        XCTAssertEqual(OneTapeOpeningTearRules.progress(baseProgress: 0.5, translationX: -60, trackWidth: 300), 0.3, accuracy: 0.001)
+        XCTAssertEqual(OneTapeOpeningTearRules.progress(baseProgress: 0.3, translationX: 150, trackWidth: 300), 0.8, accuracy: 0.001)
+        XCTAssertEqual(OneTapeOpeningTearRules.progress(baseProgress: .nan, translationX: 50, trackWidth: 0), 0)
+
+        XCTAssertTrue(OneTapeOpeningTearRules.shouldCommit(progress: 0.72, predictedTranslationX: 100, trackWidth: 300))
+        XCTAssertTrue(OneTapeOpeningTearRules.shouldCommit(progress: 0.30, predictedTranslationX: 150, trackWidth: 300))
+        XCTAssertFalse(OneTapeOpeningTearRules.shouldCommit(progress: 0.30, predictedTranslationX: 80, trackWidth: 300))
+        XCTAssertFalse(OneTapeOpeningTearRules.shouldCommit(progress: 0.10, predictedTranslationX: 250, trackWidth: 300))
+
+        XCTAssertEqual(OneTapeOpeningTearRules.detentIndex(for: 0), 0)
+        XCTAssertEqual(OneTapeOpeningTearRules.detentIndex(for: 1), OneTapeOpeningTearRules.perforationSteps)
     }
 
-    func testDockGeometryMatchesPlayerCanvasAcrossWindowSizes() {
-        for size in [CGSize(width: 320, height: 568), CGSize(width: 393, height: 852),
-                     CGSize(width: 430, height: 932), CGSize(width: 852, height: 393)] {
-            let layout = OneTapeOpeningLayout(size: size)
-            let origin = CGPoint(x: (size.width - 393 * layout.playerScale) / 2,
-                                 y: (size.height - 852 * layout.playerScale) / 2)
-            XCTAssertEqual(layout.center(progress: 1).x,
-                origin.x + (8.33 + 376.33 / 2) * layout.playerScale, accuracy: 0.001)
-            XCTAssertEqual(layout.center(progress: 1).y,
-                origin.y + (57.33 + 576 / 2) * layout.playerScale, accuracy: 0.001)
-            XCTAssertLessThanOrEqual(598 * layout.looseScale, size.width)
-        }
-    }
-
-    func testBundledClickCanPrepareWithoutReconfiguringTheMusicSession() throws {
+    func testBundledSoundsPrepareWithoutReconfiguringMusicSession() throws {
         let session = AVAudioSession.sharedInstance()
         let category = session.category, mode = session.mode, options = session.categoryOptions
         let service = OneTapeOpeningFeedbackService()
@@ -218,6 +156,45 @@ final class OneTapeOpeningTests: XCTestCase {
         XCTAssertEqual(session.category, category)
         XCTAssertEqual(session.mode, mode)
         XCTAssertEqual(session.categoryOptions, options)
+    }
+
+    func testNewOpeningSceneRendersCleanlyInSealedAndMidTearStates() {
+        let (_, prefs) = preferences()
+        let store = OneTapeOpeningStore(preferences: prefs, feedback: OpeningFeedback())
+        let sealedView = ZStack {
+            Color(red: 0.14, green: 0.14, blue: 0.15)
+            OneTapeOpeningScene(
+                opening: store,
+                safeAreaInsets: EdgeInsets(top: 59, leading: 0, bottom: 34, trailing: 0),
+                reducedMotion: false,
+                onCommitUnwrap: {},
+                onSkip: {}
+            )
+        }
+        .frame(width: 402, height: 874)
+
+        let sealedRenderer = ImageRenderer(content: sealedView)
+        sealedRenderer.scale = 2
+        if let image = sealedRenderer.uiImage {
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "opening-new-01-sealed"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        } else {
+            XCTFail("Failed to render sealed opening")
+        }
+
+        store.updateTear(translationX: 140, trackWidth: 280, reducedMotion: false)
+        let midRenderer = ImageRenderer(content: sealedView)
+        midRenderer.scale = 2
+        if let image = midRenderer.uiImage {
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "opening-new-02-mid-tear"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        } else {
+            XCTFail("Failed to render mid-tear opening")
+        }
     }
 
     private func waitUntil(_ predicate: @escaping () -> Bool) async throws {
@@ -232,14 +209,18 @@ final class OneTapeOpeningTests: XCTestCase {
 @MainActor
 private final class OpeningFeedback: OneTapeOpeningFeedbackProviding {
     var preparations = 0
+    var ticks = 0
+    var snaps = 0
     var latches = 0
     var fail = false
     var stops = 0
-    var onLatch: (() -> Void)?
+
     func prepare() throws {
         preparations += 1
         if fail { throw OneTapeTransportSoundError.missingResource }
     }
-    func latch() { latches += 1; onLatch?() }
+    func tickPerforation() { ticks += 1 }
+    func snapStrip() { snaps += 1 }
+    func latch() { latches += 1 }
     func stop() { stops += 1 }
 }

@@ -1,53 +1,117 @@
 import SwiftUI
 
-/// The overlay contains only the case lid and controls. The moving cassette
-/// belongs to PlayerFace for the entire journey, including the final handoff.
+/// Full-screen factory anti-static sleeve overlay sitting directly over the
+/// real live `OneTapePlayerFace`. Sliding left/right glides the horizontal
+/// zipper 1:1 while visibly parting the upper and lower sleeve flaps up and
+/// down; tapping the red `"拆封"` pull-tab zips it smoothly open automatically.
 struct OneTapeOpeningScene: View {
     @ObservedObject var opening: OneTapeOpeningStore
     let safeAreaInsets: EdgeInsets
     let reducedMotion: Bool
-    let onOpenCase: () -> Void
-    let onInsert: () -> Void
+    let onCommitUnwrap: () -> Void
     let onSkip: () -> Void
 
-    private var waiting: Bool { opening.journey.stage == .waiting }
-    private var inspecting: Bool { opening.journey.stage == .inspecting }
+    @State private var peakDragDistance: CGFloat = 0
+
+    private var interactive: Bool {
+        opening.journey.stage == .sealed || opening.journey.stage == .tearing
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            let layout = OneTapeOpeningLayout(size: geometry.size)
-            ZStack {
-                Color.clear
-                OneTapeOpeningCase(lid: true, opening: reducedMotion ? 0 : opening.caseOpening)
-                    .rotation3DEffect(.degrees(reducedMotion ? 0 : 7), axis: (x: 1, y: 0, z: 0))
-                    .scaleEffect(layout.caseScale * (reducedMotion ? 1 : 1 - 0.10 * opening.extraction))
-                    .position(x: layout.looseCenter.x,
-                              y: layout.looseCenter.y + (reducedMotion ? 0 : 24 * opening.extraction))
-                    .opacity(opening.caseOpacity)
-                if waiting || inspecting { accessibleObject(layout: layout) }
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button("跳过", action: onSkip)
-                            .font(.system(size: 14)).foregroundStyle(.white.opacity(0.55))
-                            .frame(minWidth: 44, minHeight: 44)
-                            .accessibilityIdentifier("opening.skip")
+            let width = geometry.size.width
+            let height = geometry.size.height
+            let tearY = max(safeAreaInsets.top + 148, height * 0.28)
+            let peel = opening.sleevePeel
+
+            ZStack(alignment: .topLeading) {
+                Color.clear.frame(width: width, height: height)
+
+                // Top heat-sealed cap: parts UP behind the zipper, then glides off upward.
+                OneTapeFactorySleeveHalf(
+                    isTopCap: true,
+                    tearProgress: opening.tearProgress,
+                    sheenAnchor: opening.sheenAnchor,
+                    peelProgress: peel,
+                    bottomSafeInset: safeAreaInsets.bottom
+                )
+                .frame(width: width, height: tearY)
+                .offset(y: -(reducedMotion ? 0 : (tearY + 60) * peel))
+                .rotation3DEffect(
+                    .degrees(reducedMotion ? 0 : -14 * Double(peel)),
+                    axis: (x: 1, y: 0, z: 0),
+                    anchor: .top,
+                    perspective: 0.45
+                )
+                .opacity(opening.sleeveOpacity)
+
+                // Main lower frosted pouch: parts DOWN behind the zipper, then glides off downward.
+                OneTapeFactorySleeveHalf(
+                    isTopCap: false,
+                    tearProgress: opening.tearProgress,
+                    sheenAnchor: opening.sheenAnchor,
+                    peelProgress: peel,
+                    bottomSafeInset: safeAreaInsets.bottom
+                )
+                .frame(width: width, height: max(1, height - tearY))
+                .offset(y: tearY + (reducedMotion ? 0 : height * 0.88 * peel))
+                .rotation3DEffect(
+                    .degrees(reducedMotion ? 0 : 9 * Double(peel)),
+                    axis: (x: 1, y: 0, z: 0),
+                    anchor: .bottom,
+                    perspective: 0.45
+                )
+                .opacity(opening.sleeveOpacity)
+
+                // Horizontal interlocking zipper track & red `"拆封 >"` slider pull-tab.
+                OneTapeOpeningTearStrip(
+                    tearProgress: opening.tearProgress,
+                    detachment: opening.stripDetachment,
+                    slideDirection: opening.slideDirection,
+                    reducedMotion: reducedMotion,
+                    onAccessibilityActivate: onCommitUnwrap
+                )
+                .offset(y: tearY - 26)
+                .opacity(opening.sleeveOpacity)
+
+                // Floating prompt pill below the zipper until the user begins unzipping.
+                if opening.journey.stage == .sealed && opening.tearProgress < 0.06 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "hand.draw")
+                            .font(.system(size: 11, weight: .medium))
+                        Text("左右滑动撕开封条，或轻点拆封")
+                            .font(.system(size: 12, weight: .medium))
+                            .tracking(0.3)
                     }
-                    Spacer()
-                    if waiting || inspecting {
-                        OneTapeOpeningGuideButton(upward: waiting, reducedMotion: reducedMotion,
-                            action: waiting ? onOpenCase : onInsert)
-                            .id(waiting)
-                    }
+                    .foregroundStyle(.white.opacity(0.88))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.56), in: Capsule())
+                    .overlay { Capsule().strokeBorder(.white.opacity(0.16), lineWidth: 0.6) }
+                    .frame(maxWidth: .infinity)
+                    .offset(y: tearY + 38)
+                    .transition(.opacity)
+                    .allowsHitTesting(false)
                 }
-                .padding(.horizontal, max(22, safeAreaInsets.leading + 16))
-                .padding(.top, safeAreaInsets.top + 10)
-                .padding(.bottom, safeAreaInsets.bottom + 28)
-                .opacity(1 - opening.homeReveal)
+
+                // Top-right Skip control (respects Dynamic Island / top safe inset).
+                HStack {
+                    Spacer()
+                    Button("跳过", action: onSkip)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.78))
+                        .padding(.horizontal, 13)
+                        .frame(minWidth: 44, minHeight: 34)
+                        .background(.black.opacity(0.36), in: Capsule())
+                        .accessibilityIdentifier("opening.skip")
+                }
+                .padding(.horizontal, max(22, safeAreaInsets.trailing + 18))
+                .padding(.top, max(54, safeAreaInsets.top + 8))
+                .opacity(opening.sleeveOpacity)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+            .frame(width: width, height: height, alignment: .topLeading)
             .contentShape(Rectangle())
-            .simultaneousGesture(interaction(width: geometry.size.width))
+            .gesture(zipperGesture(width: width, height: height, tearY: tearY))
             .clipped()
         }
         .ignoresSafeArea(.container)
@@ -56,102 +120,62 @@ struct OneTapeOpeningScene: View {
         .accessibilityValue(opening.journey.stage.caption)
     }
 
-    private func interaction(width: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 10)
+    /// Unified zero-conflict gesture handling both bidirectional left/right
+    /// zipper sliding anywhere on the sleeve AND tapping directly on the red
+    /// `"拆封"` pull-tab to smoothly unzip automatically.
+    private func zipperGesture(width: CGFloat, height: CGFloat, tearY: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .onChanged { value in
-                guard inspecting else { return }
-                opening.inspect(yaw: OneTapeOpeningGesture.yaw(translationX: value.translation.width, width: width),
-                                reducedMotion: reducedMotion)
-            }
-            .onEnded { value in
-                opening.releaseInspection(reducedMotion: reducedMotion)
-                switch OneTapeOpeningGesture.action(stage: opening.journey.stage,
-                    translation: value.translation, predicted: value.predictedEndTranslation, width: width) {
-                case .openCase: onOpenCase()
-                case .insert: onInsert()
-                case .none: break
+                guard interactive else { return }
+                let dist = hypot(value.translation.width, value.translation.height)
+                if dist > peakDragDistance { peakDragDistance = dist }
+                let trackWidth = max(140, width - 92)
+                if abs(value.translation.width) >= 4 || opening.journey.stage == .tearing {
+                    opening.updateTear(
+                        translationX: value.translation.width,
+                        trackWidth: trackWidth,
+                        reducedMotion: reducedMotion
+                    )
+                } else {
+                    opening.updateSheen(
+                        normalizedX: value.location.x / max(1, width),
+                        normalizedY: value.location.y / max(1, height),
+                        reducedMotion: reducedMotion
+                    )
                 }
             }
-    }
-
-    private func accessibleObject(layout: OneTapeOpeningLayout) -> some View {
-        Color.clear
-            .frame(width: (waiting ? 598 * layout.caseScale : 576 * layout.looseScale),
-                   height: (waiting ? 392 * layout.caseScale : 376.33 * layout.looseScale))
-            .position(x: layout.looseCenter.x,
-                      y: layout.looseCenter.y - (waiting || reducedMotion ? 0 : layout.size.height * 0.022))
-            .accessibilityElement(children: .ignore)
-            .accessibilityAddTraits(.isButton)
-            .accessibilityLabel(waiting ? "关闭的磁带盒" : "磁带")
-            .accessibilityValue(waiting ? "已关闭" : "横向展示，可左右转动")
-            .accessibilityHint(waiting ? "向上滑动打开磁带盒" : "左右轻拖转动，从右向左滑动放入播放器")
-            .accessibilityAction { if waiting { onOpenCase() } else { onInsert() } }
-            .accessibilityAdjustableAction { direction in
-                guard inspecting else { return }
-                opening.inspect(yaw: opening.inspectionYaw + (direction == .increment ? 15 : -15),
-                                reducedMotion: reducedMotion)
+            .onEnded { value in
+                let maxMoved = max(peakDragDistance, hypot(value.translation.width, value.translation.height))
+                peakDragDistance = 0
+                guard interactive else { return }
+                let tabCenterX = OneTapeOpeningTearStrip.pullTabOriginX(
+                    progress: opening.tearProgress,
+                    width: width
+                ) + 42
+                let tappedTab = maxMoved < 14
+                    && abs(value.startLocation.x - tabCenterX) <= 84
+                    && abs(value.startLocation.y - tearY) <= 60
+                if tappedTab {
+                    onCommitUnwrap()
+                    return
+                }
+                let trackWidth = max(140, width - 92)
+                opening.endTear(
+                    predictedTranslationX: value.predictedEndTranslation.width,
+                    trackWidth: trackWidth,
+                    reducedMotion: reducedMotion
+                )
             }
-            .accessibilityIdentifier(waiting ? "opening.case" : "opening.cassette")
     }
 }
 
-private struct OneTapeOpeningGuideButton: View {
-    let upward: Bool
-    let reducedMotion: Bool
-    let action: () -> Void
-    @State private var nudge = false
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: upward ? "arrow.up" : "arrow.left")
-                .font(.system(size: 24, weight: .ultraLight))
-                .foregroundStyle(.white.opacity(nudge ? 0.82 : 0.4))
-                .offset(x: upward || !nudge ? 0 : -9, y: upward && nudge ? -9 : 0)
-                .frame(width: 64, height: 64).contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(upward ? "打开磁带盒" : "放入磁带")
-        .accessibilityHint(upward ? "向上滑动，也可轻点箭头" : "从右向左滑动，也可轻点箭头")
-        .accessibilityIdentifier(upward ? "opening.openCase" : "opening.insert")
-        .onAppear(perform: animateArrow)
-        .onChange(of: reducedMotion) { _, reduced in
-            if reduced {
-                var transaction = Transaction()
-                transaction.disablesAnimations = true
-                withTransaction(transaction) { nudge = false }
-            } else { animateArrow() }
-        }
-    }
-
-    private func animateArrow() {
-        guard !reducedMotion else { return }
-        withAnimation(.easeInOut(duration: 0.95).repeatForever(autoreverses: true)) { nudge = true }
-    }
-}
-
-/// The player canvas is already scaled to the window. Convert window offsets
-/// back to canvas points once; use the actual cassette center as every anchor.
+/// Subtle deck settling transform applied while the frosted sleeve unzips.
 struct OneTapeOpeningCassetteTransform: ViewModifier {
     let pose: OneTapeOpeningPlayerPose?
     let windowSize: CGSize
 
     func body(content: Content) -> some View {
-        let value = pose ?? OneTapeOpeningPlayerPose()
-        let layout = OneTapeOpeningLayout(size: windowSize)
-        let anchor = UnitPoint(x: (8.33 + 376.33 / 2) / 393,
-                               y: (57.33 + 576 / 2) / 852)
-        let center = layout.center(progress: value.approach)
-        let lift = value.reducedMotion ? 0 : windowSize.height * 0.022 * value.extraction * (1 - value.approach)
-        return content
-            .rotationEffect(.degrees(-90 * (1 - value.turn)), anchor: anchor)
-            .rotation3DEffect(.degrees(value.reducedMotion ? 0 : 7 * (1 - value.turn)),
-                              axis: (x: 1, y: 0, z: 0), anchor: anchor)
-            .rotation3DEffect(.degrees(value.reducedMotion ? 0 : value.yaw),
-                              axis: (x: 0, y: 1, z: 0), anchor: anchor, perspective: 0.45)
-            .scaleEffect(layout.cassetteScale(extraction: value.extraction, approach: value.approach)
-                         / layout.playerScale, anchor: anchor)
-            .offset(x: (center.x - layout.dockCenter.x) / layout.playerScale,
-                    y: (center.y - layout.dockCenter.y - lift) / layout.playerScale)
-            .opacity(value.opacity)
+        let scale = pose?.deckScale ?? 1
+        content.scaleEffect(scale, anchor: .center)
     }
 }

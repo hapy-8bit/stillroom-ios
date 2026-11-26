@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E0141220CD7F86D200D555AE"
+               BlueprintIdentifier = "BF3FE3D9214F52288CBCF7FD"
                BuildableName = "Stillroom.app"
                BlueprintName = "Stillroom"
                ReferencedContainer = "container:Stillroom.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E0141220CD7F86D200D555AE"
+            BlueprintIdentifier = "BF3FE3D9214F52288CBCF7FD"
             BuildableName = "Stillroom.app"
             BlueprintName = "Stillroom"
             ReferencedContainer = "container:Stillroom.xcodeproj">
@@ -41,7 +41,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7FF749825FDABF6EE4EA570F"
+               BlueprintIdentifier = "0341726CD4FA6E1930BB58D6"
                BuildableName = "StillroomTests.xctest"
                BlueprintName = "StillroomTests"
                ReferencedContainer = "container:Stillroom.xcodeproj">
@@ -51,7 +51,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2E0F7CA5D4CD50D6A2B90DCC"
+               BlueprintIdentifier = "27E78276E2064FD84F7FDC0C"
                BuildableName = "StillroomUITests.xctest"
                BlueprintName = "StillroomUITests"
                ReferencedContainer = "container:Stillroom.xcodeproj">
@@ -73,7 +73,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E0141220CD7F86D200D555AE"
+            BlueprintIdentifier = "BF3FE3D9214F52288CBCF7FD"
             BuildableName = "Stillroom.app"
             BlueprintName = "Stillroom"
             ReferencedContainer = "container:Stillroom.xcodeproj">
@@ -90,7 +90,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E0141220CD7F86D200D555AE"
+            BlueprintIdentifier = "BF3FE3D9214F52288CBCF7FD"
             BuildableName = "Stillroom.app"
             BlueprintName = "Stillroom"
             ReferencedContainer = "container:Stillroom.xcodeproj">

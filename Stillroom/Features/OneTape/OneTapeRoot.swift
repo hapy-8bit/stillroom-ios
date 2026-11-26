@@ -10,6 +10,7 @@ struct OneTapeRoot: View {
     @StateObject private var drawingStore = OneTapeDrawingStore()
     @StateObject private var artworkStore = OneTapeArtworkStore()
     @State private var hasOpenedLibrary = false
+    @State private var hasOpenedInsights = false
     @State private var albumCoverPickerVisible = false
     @State private var albumCoverTargetID: String?
     @State private var bodyArtworkColor: OneTapeTransportMaterial.RGB?
@@ -17,6 +18,7 @@ struct OneTapeRoot: View {
     @State private var halftoneRequest: OneTapeHalftoneWorkflowRequest?
     @State private var drawingOperationNotice: String?
     @State private var viewportSize: CGSize = CGSize(width: 393, height: 852)
+    @State private var rootSafeAreaInsets: EdgeInsets = EdgeInsets(top: 59, leading: 0, bottom: 34, trailing: 0)
 
     @MainActor
     init(music: OneTapeMusicStore? = nil) {
@@ -30,7 +32,8 @@ struct OneTapeRoot: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
-    private var menuAnimation: Animation? { reduceMotion ? nil : .easeOut(duration: 0.4) }
+    private var menuAnimation: Animation? { reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86) }
+    private var pageCrossfadeAnimation: Animation? { reduceMotion ? nil : .easeOut(duration: 0.20) }
 
     var body: some View {
         GeometryReader { geometry in
@@ -56,7 +59,13 @@ struct OneTapeRoot: View {
                         openingPose: opening.playerPose(reducedMotion: reduceMotion),
                         playbackMode: music.player.playbackMode,
                         glassInteractionEnabled: !opening.isVisible && !store.presentation.customizationVisible && store.panel == nil,
-                        onGlass: { withAnimation(menuAnimation) { store.toggleMenu() } },
+                        onGlass: {
+                            if store.presentation.customizationVisible {
+                                withAnimation(menuAnimation) { store.toggleMenu() }
+                            } else {
+                                store.toggleMenu()
+                            }
+                        },
                         onLCD: {
                             if readout.hasTrack { store.cycleScreen() }
                             else { store.present(.studio) }
@@ -110,7 +119,7 @@ struct OneTapeRoot: View {
                     .accessibilityHidden(store.presentation.destination != .library)
                 }
 
-                if !opening.isVisible, store.presentation.destination == .insights {
+                if hasOpenedInsights || store.presentation.destination == .insights {
                     OneTapeInsightsView(
                         ledger: music.player.listeningLedger,
                         liveEvent: music.player.liveListeningEvent,
@@ -120,12 +129,14 @@ struct OneTapeRoot: View {
                         artworks: music.artworks,
                         favorites: music.player.favorites,
                         isPlaying: music.player.isPlaying,
-                        isActive: store.presentation.destination == .insights,
+                        isActive: !opening.isVisible && store.presentation.destination == .insights,
                         onLoadArtwork: { collection in Task { await music.loadArtwork(for: collection) } },
                         onPlayAlbum: playInsightAlbum,
                         onPlayTrack: playInsightTrack
                     )
-                    .transition(.opacity)
+                    .opacity(!opening.isVisible && store.presentation.destination == .insights ? 1 : 0)
+                    .allowsHitTesting(store.presentation.destination == .insights)
+                    .accessibilityHidden(store.presentation.destination != .insights)
                 }
 
                 if !opening.isVisible, store.presentation.customizationVisible {
@@ -138,21 +149,33 @@ struct OneTapeRoot: View {
             // The dock belongs to the window's safe viewport. Page content
             // may draw outside that viewport without moving its screen edges.
             .frame(width: geometry.size.width, height: geometry.size.height)
+            .animation(pageCrossfadeAnimation, value: store.presentation.destination)
             .overlay(alignment: .bottom) {
-                if !opening.isVisible, store.presentation.menuVisible {
+                // Keep mounted while player owns the scene so toggling menuVisible
+                // glides purely on GPU transforms without tearing down Liquid Glass
+                // or re-rendering the miniature cassette artwork on main thread.
+                if !opening.isVisible {
                     navigation
                         .padding(.horizontal, 16)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 4)
                 }
             }
             .overlay(alignment: .topTrailing) {
-                if !opening.isVisible, store.presentation.menuVisible, store.presentation.destination == .player {
+                if !opening.isVisible {
+                    let showSettings = store.presentation.menuVisible && store.presentation.destination == .player
                     settingsButton
                         .padding(.trailing, 27)
                         // The physical player covers the status-bar region. Only
                         // this decorative HUD reaches into it; library uses safe area.
-                        .offset(y: -geometry.safeAreaInsets.top + 9)
-                        .transition(.opacity)
+                        .offset(y: -geometry.safeAreaInsets.top + 9 + (showSettings || reduceMotion ? 0 : -10))
+                        .scaleEffect(showSettings || reduceMotion ? 1 : 0.88)
+                        .opacity(showSettings ? 1 : 0)
+                        .allowsHitTesting(showSettings)
+                        .accessibilityHidden(!showSettings)
+                        .animation(
+                            reduceMotion ? nil : .spring(response: showSettings ? 0.34 : 0.22, dampingFraction: 0.88),
+                            value: showSettings
+                        )
                 }
             }
             #if DEBUG && targetEnvironment(simulator)
@@ -164,20 +187,8 @@ struct OneTapeRoot: View {
                 }
             }
             #endif
-            .animation(menuAnimation, value: store.presentation.menuVisible)
-            .allowsHitTesting(!opening.isVisible)
-            .accessibilityHidden(opening.isVisible)
-            .overlay {
-                if opening.isVisible {
-                    OneTapeOpeningScene(opening: opening,
-                        safeAreaInsets: geometry.safeAreaInsets,
-                        reducedMotion: reduceMotion,
-                        onOpenCase: { opening.openCase(reducedMotion: reduceMotion) },
-                        onInsert: {
-                            opening.insert(reducedMotion: reduceMotion)
-                        }, onSkip: opening.finish)
-                }
-            }
+            .allowsHitTesting(!opening.isAnyOverlayVisible)
+            .accessibilityHidden(opening.isAnyOverlayVisible)
             .overlay {
                 Color.clear
                     .frame(width: 0, height: 0)
@@ -197,8 +208,35 @@ struct OneTapeRoot: View {
                 request: $drawingRequest,
                 notice: $drawingOperationNotice
             ))
-            .onAppear { viewportSize = geometry.size }
-            .onChange(of: geometry.size) { _, newSize in viewportSize = newSize }
+            .onAppear {
+                viewportSize = geometry.size
+                rootSafeAreaInsets = geometry.safeAreaInsets
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                viewportSize = newSize
+                rootSafeAreaInsets = geometry.safeAreaInsets
+            }
+        }
+        .overlay {
+            if opening.isVisible {
+                OneTapeOpeningScene(
+                    opening: opening,
+                    safeAreaInsets: rootSafeAreaInsets,
+                    reducedMotion: reduceMotion,
+                    onCommitUnwrap: { opening.commitUnwrap(reducedMotion: reduceMotion) },
+                    onSkip: opening.finish
+                )
+                .ignoresSafeArea()
+            }
+        }
+        .overlay {
+            if opening.isSplashVisible {
+                OneTapeLaunchSplashView(
+                    opening: opening,
+                    reducedMotion: reduceMotion
+                )
+                .ignoresSafeArea()
+            }
         }
         .ignoresSafeArea(.keyboard)
         .statusBarHidden(true)
@@ -249,9 +287,10 @@ struct OneTapeRoot: View {
             }
         }
         .onChange(of: store.presentation.destination) { _, destination in
-            // Keep the opened crate alive so returning from the physical player
-            // preserves its selected case, query, section and scroll position.
+            // Keep the opened crate & insights alive so switching tabs glides at
+            // 120 FPS without tearing down view state or scroll position.
             if destination == .library { hasOpenedLibrary = true }
+            if destination == .insights { hasOpenedInsights = true }
             syncTiltMonitor()
         }
         .onChange(of: scenePhase) { _, phase in
@@ -322,6 +361,7 @@ struct OneTapeRoot: View {
     private var navigation: some View {
         OneTapeNavigation(
             destination: store.presentation.destination,
+            isVisible: store.presentation.menuVisible,
             customizationVisible: store.presentation.customizationVisible,
             tapeStyle: store.appearance.tapeStyle,
             readout: readout,
@@ -330,7 +370,7 @@ struct OneTapeRoot: View {
             onPlayer: { store.navigate(to: .player) },
             onLibrary: { store.navigate(to: .library) },
             onInsights: { store.navigate(to: .insights) },
-            onCustomize: store.toggleCustomization,
+            onCustomize: { withAnimation(menuAnimation) { store.toggleCustomization() } },
             onImport: { store.present(.sources) },
             onSettings: { store.present(.settings) }
         )
@@ -384,7 +424,7 @@ struct OneTapeRoot: View {
             .modifier(OneTapeGlassSurface(shape: Circle()))
             .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OneTapeDockPressStyle())
         .accessibilityLabel("设置")
         .accessibilityIdentifier("nav.settings")
     }
@@ -402,6 +442,14 @@ struct OneTapeRoot: View {
                     store.navigate(to: .player)
                     opening.replay()
                 },
+                onReplaySplash: {
+                    store.panel = nil
+                    store.navigate(to: .player)
+                    opening.replaySplash(reducedMotion: reduceMotion)
+                },
+                splashEnabled: $opening.splashEnabled,
+                isPro: purchases.isPro,
+                proPrice: purchases.product?.displayPrice,
                 proStatus: purchases.statusLabel,
                 purchaseIssue: purchases.entitlementIssue,
                 purchasesBusy: purchases.isBusy,
@@ -414,6 +462,7 @@ struct OneTapeRoot: View {
                 onTogglePlayback: { transport(.play) },
                 onNextTrack: { transport(.next) }
             )
+            .task { if purchases.product == nil { await purchases.loadProduct() } }
             .alert(item: $purchases.notice, content: purchaseAlert)
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
@@ -425,7 +474,7 @@ struct OneTapeRoot: View {
                 entitlementIssue: purchases.entitlementIssue, onPurchase: purchases.buy,
                 onReload: { Task { await purchases.refreshEntitlements(); await purchases.loadProduct() } })
                 .task { await purchases.refreshEntitlements(); await purchases.loadProduct() }
-                .alert(item: $purchases.notice, content: purchaseAlert)
+            .alert(item: $purchases.notice, content: purchaseAlert)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.hidden)
                 .presentationCornerRadius(30)

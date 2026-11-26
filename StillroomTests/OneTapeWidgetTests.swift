@@ -214,5 +214,26 @@ final class OneTapeWidgetTests: XCTestCase {
                 }
             }
         }
+        let showcase = OneTapeWidgetSettingsShowcase(
+            snapshot: snapshot,
+            artwork: cover,
+            screenSize: CGSize(width: 402, height: 874),
+            onTogglePlayback: {},
+            onNextTrack: {}
+        )
+        .padding(20)
+        .frame(width: 402)
+        .background(Color(white: 0.065))
+        .preferredColorScheme(.dark)
+        let showcaseRenderer = ImageRenderer(content: showcase)
+        showcaseRenderer.scale = 2
+        if let rendered = showcaseRenderer.uiImage {
+            let attachment = XCTAttachment(image: rendered)
+            attachment.name = "settings-widget-showcase-medium"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        } else {
+            XCTFail("Failed rendering settings widget showcase")
+        }
     }
 }

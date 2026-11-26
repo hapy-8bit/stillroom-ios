@@ -1,135 +1,133 @@
 import CoreGraphics
 import Foundation
 
-enum OneTapeOpeningStage: String {
-    case waiting, unboxing, inspecting, rotating, inserting, revealing, finished
+enum OneTapeOpeningStage: String, Equatable, Sendable {
+    /// Factory anti-static frosted sleeve covers the live player with a closed
+    /// horizontal zipper ready to slide left/right or tap to unzip.
+    case sealed
+    /// User is actively sliding the horizontal zipper left or right.
+    case tearing
+    /// Zipper reached the end; slider detaches and top/bottom frosted flaps
+    /// glide apart to reveal the live player.
+    case peeling
+    /// Unwrapping complete; overlay removed and player owns interaction.
+    case finished
 
     var caption: String {
         switch self {
-        case .waiting: return "向上滑动打开磁带盒"
-        case .unboxing: return "正在开盒"
-        case .inspecting: return "左右轻拖转动，向左滑入仓"
-        case .rotating: return "正在转正"
-        case .inserting: return "正在进入播放器"
-        case .revealing, .finished: return "播放器"
+        case .sealed: return "滑动拉链拆封，或轻点拆封拉环"
+        case .tearing: return "正在拉开封袋拉链"
+        case .peeling: return "正在揭开防静电保护膜"
+        case .finished: return "播放器"
         }
     }
 }
 
-/// A visual journey only. No transition requests music playback or changes media time.
-struct OneTapeOpeningJourney {
-    private(set) var stage: OneTapeOpeningStage = .waiting
+/// Visual unboxing state machine only. No transition requests music playback or
+/// modifies authoritative media time.
+struct OneTapeOpeningJourney: Equatable, Sendable {
+    private(set) var stage: OneTapeOpeningStage = .sealed
 
-    @discardableResult mutating func openCase() -> Bool {
-        guard stage == .waiting else { return false }
-        stage = .unboxing
+    @discardableResult
+    mutating func beginTearing() -> Bool {
+        guard stage == .sealed else { return false }
+        stage = .tearing
         return true
     }
 
-    @discardableResult mutating func insert() -> Bool {
-        guard stage == .inspecting else { return false }
-        stage = .rotating
+    @discardableResult
+    mutating func commitPeel() -> Bool {
+        guard stage == .sealed || stage == .tearing else { return false }
+        stage = .peeling
         return true
     }
 
-    @discardableResult mutating func advance() -> Bool {
-        switch stage {
-        case .unboxing: stage = .inspecting
-        case .rotating: stage = .inserting
-        case .inserting: stage = .revealing
-        case .revealing: stage = .finished
-        case .waiting, .inspecting, .finished: return false
-        }
+    @discardableResult
+    mutating func pauseTearing() -> Bool {
+        guard stage == .tearing else { return false }
+        stage = .sealed
         return true
     }
 
     mutating func finish() { stage = .finished }
-    mutating func reset() { stage = .waiting }
+    mutating func reset() { stage = .sealed }
 }
 
 enum OneTapeOpeningTiming {
-    static let unbox = 1.40
-    static let turn = 0.72
-    static let approachDelay = 0.40
-    static let dock = 0.94
-    static let reveal = 0.12
+    static let zipFinishMax = 0.42
+    static let zipFinishMin = 0.14
+    static let stripFlyOff = 0.22
+    static let peelDelay = 0.08
+    static let sleevePeel = 0.68
+    static let settle = 0.08
+    static let reducedFade = 0.22
 }
 
-/// Presentation values for the player's existing cassette layer. Its visual
-/// clock, materials and glass state remain the same throughout the opening.
-struct OneTapeOpeningPlayerPose {
-    var extraction: CGFloat = 1
-    var turn: CGFloat = 1
-    var approach: CGFloat = 1
-    var yaw: Double = 0
-    var opacity: Double = 1
+/// Timing constants (seconds) for the automatic Braun-inspired mini deck
+/// launch splash that transitions directly into the main player.
+enum OneTapeSplashTiming {
+    static let entrance = 0.28
+    static let pressDelay = 0.34
+    static let spinDuration = 1.18
+    static let dissolveDuration = 0.42
+    static let reducedHold = 0.42
+    static let reducedFade = 0.24
+}
+
+/// Presentation pose for the real player sitting beneath the frosted factory
+/// sleeve. The player remains live and intact underneath, breathing subtly
+/// into focus as the sleeve peels away.
+struct OneTapeOpeningPlayerPose: Equatable, Sendable {
+    var peelProgress: CGFloat = 1
     var bodyReveal: Double = 1
     var reducedMotion = false
+
+    var deckScale: CGFloat {
+        guard !reducedMotion else { return 1 }
+        let t = min(1, max(0, peelProgress))
+        return 0.976 + 0.024 * t
+    }
 }
 
-enum OneTapeOpeningGesture {
-    enum Action { case none, openCase, insert }
+/// Pure bidirectional zipper rules and tooth detent stepping (logical points).
+enum OneTapeOpeningTearRules {
+    static let commitProgress: CGFloat = 0.72
+    static let flickMinProgress: CGFloat = 0.28
+    static let flickVelocityRatio: CGFloat = 0.42
+    static let perforationSteps: Int = 18
 
-    /// Short horizontal drags inspect the tape. Only a committed left swipe
-    /// enters the deck; vertical and rightward gestures never insert it.
-    static func action(stage: OneTapeOpeningStage, translation: CGSize,
-                       predicted: CGSize, width: CGFloat) -> Action {
-        guard width.isFinite, width > 0, translation.width.isFinite,
-              translation.height.isFinite, predicted.width.isFinite,
-              predicted.height.isFinite else { return .none }
-        switch stage {
-        case .waiting:
-            let up = -translation.height
-            return up > abs(translation.width) * 1.2
-                && (up > 55 || (up > 24 && predicted.height < -110)) ? .openCase : .none
-        case .inspecting:
-            let left = -translation.width
-            return left > abs(translation.height) * 1.3
-                && (left > max(100, width * 0.30)
-                    || (left > 65 && predicted.width < -width * 0.65)) ? .insert : .none
-        default: return .none
+    /// Computes bidirectional zipper progress (`0...1`) so sliding right opens
+    /// the top/bottom sleeve flaps and sliding left smoothly zips them back shut.
+    static func progress(
+        baseProgress: CGFloat,
+        translationX: CGFloat,
+        trackWidth: CGFloat
+    ) -> CGFloat {
+        guard baseProgress.isFinite, translationX.isFinite,
+              trackWidth.isFinite, trackWidth > 0 else {
+            return min(1, max(0, baseProgress.isFinite ? baseProgress : 0))
         }
+        let base = min(1, max(0, baseProgress))
+        let delta = translationX / trackWidth
+        return min(1, max(0, base + delta))
     }
 
-    static func yaw(translationX: CGFloat, width: CGFloat) -> Double {
-        guard translationX.isFinite, width.isFinite, width > 0 else { return 0 }
-        return Double(min(34, max(-34, translationX / width * 90)))
-    }
-}
-
-/// All measurements are window-relative logical points. The destination uses
-/// the same centered 393 × 852 canvas and cassette origin as PlayerFace.
-struct OneTapeOpeningLayout {
-    let size: CGSize
-    var playerScale: CGFloat { max(0.01, min(size.width / 393, size.height / 852)) }
-    var caseScale: CGFloat {
-        max(0.01, min(size.width * 0.68 / 598, size.height * 0.23 / 392))
-    }
-    var boxedTapeScale: CGFloat { caseScale * 0.92 }
-    var looseScale: CGFloat {
-        max(0.01, min(size.width * 0.84 / 576,
-                      size.height * (size.height < 700 ? 0.26 : 0.28) / 376.33))
-    }
-    var looseCenter: CGPoint {
-        CGPoint(x: size.width / 2, y: size.height * (size.height < 700 ? 0.43 : 0.46))
-    }
-    var dockCenter: CGPoint {
-        CGPoint(x: size.width / 2 - 0.005 * playerScale,
-                y: size.height / 2 + (57.33 + 288 - 426) * playerScale)
+    /// True once the zipper is pulled far enough right or briskly flicked right.
+    static func shouldCommit(
+        progress: CGFloat,
+        predictedTranslationX: CGFloat,
+        trackWidth: CGFloat
+    ) -> Bool {
+        guard progress.isFinite, predictedTranslationX.isFinite,
+              trackWidth.isFinite, trackWidth > 0 else { return false }
+        if progress >= commitProgress { return true }
+        return progress >= flickMinProgress && predictedTranslationX >= trackWidth * flickVelocityRatio
     }
 
-    func center(progress: CGFloat) -> CGPoint {
-        let t = min(1, max(0, progress))
-        return CGPoint(x: looseCenter.x + (dockCenter.x - looseCenter.x) * t,
-                       y: looseCenter.y + (dockCenter.y - looseCenter.y) * t)
-    }
-
-    func scale(progress: CGFloat) -> CGFloat {
-        looseScale + (playerScale - looseScale) * min(1, max(0, progress))
-    }
-
-    func cassetteScale(extraction: CGFloat, approach: CGFloat) -> CGFloat {
-        let extracted = boxedTapeScale + (looseScale - boxedTapeScale) * min(1, max(0, extraction))
-        return extracted + (playerScale - extracted) * min(1, max(0, approach))
+    /// Discrete zipper tooth index (`0...perforationSteps`) for micro-haptics.
+    static func detentIndex(for progress: CGFloat) -> Int {
+        guard progress.isFinite else { return 0 }
+        let clamped = min(1, max(0, progress))
+        return Int((clamped * CGFloat(perforationSteps)).rounded(.down))
     }
 }

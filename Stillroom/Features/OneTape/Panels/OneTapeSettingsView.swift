@@ -6,6 +6,10 @@ struct OneTapeSettingsView: View {
     let onStudio: () -> Void
     let onAddMusic: () -> Void
     let onReplayOpening: () -> Void
+    var onReplaySplash: () -> Void = {}
+    var splashEnabled: Binding<Bool> = .constant(true)
+    var isPro: Bool = false
+    var proPrice: String? = nil
     let proStatus: String
     let purchaseIssue: String?
     let purchasesBusy: Bool
@@ -20,32 +24,33 @@ struct OneTapeSettingsView: View {
 
     @State private var notice: SettingsNotice?
     @State private var supportDestination: OneTapeSupportDestination?
+    @State private var reportVisible = false
+    @State private var aboutVisible = false
+
+    private let accent = Color(red: 0.89, green: 0.57, blue: 0.35)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("设置")
                 .font(.system(size: 21, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .padding(.horizontal, 27)
-                .padding(.top, 26)
-                .padding(.bottom, 26)
+                .foregroundStyle(.white.opacity(0.92))
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .padding(.bottom, 18)
                 .accessibilityAddTraits(.isHeader)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 30) {
+                VStack(alignment: .leading, spacing: 22) {
+                    proCard
                     openingDemo
-                    pro
                     widgets
-                    remoteControl
-                    screen
-                    musicSource
-                    roomListening
-                    studio
-                    about
+                    musicAndPlayback
+                    supportSection
+                    versionFooter
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 2)
-                .padding(.bottom, 40)
+                .padding(.bottom, 42)
             }
             .scrollIndicators(.hidden)
         }
@@ -54,254 +59,262 @@ struct OneTapeSettingsView: View {
         .sheet(item: $supportDestination) { destination in
             OneTapeSupportScreen(destination: destination)
         }
+        .sheet(isPresented: $reportVisible) {
+            OneTapeReportView()
+        }
+        .sheet(isPresented: $aboutVisible) {
+            OneTapeAboutView()
+        }
         .alert(item: $notice) { item in
-            Alert(title: Text(item.title), message: Text(item.message), dismissButton: .default(Text("知道了")))
+            Alert(
+                title: Text(item.title),
+                message: Text(item.message),
+                dismissButton: .default(Text("知道了"))
+            )
         }
     }
 
-    private var pro: some View {
-        settingsSection(OneTapePaymentPlan.productName) {
-            HStack {
-                Text("Pro 状态")
-                Spacer()
-                Text(proStatus).foregroundStyle(.white.opacity(0.55))
-                    .accessibilityIdentifier("settings.proStatus")
-            }
-            .font(.system(size: 16))
-            .foregroundStyle(.white.opacity(0.85))
-            .frame(minHeight: 44)
-            HStack(spacing: 10) {
-                row(isRestoringPurchases ? "正在恢复购买…" : "恢复购买", identifier: "settings.restorePurchases",
-                    action: onRestorePurchases)
-                    .disabled(purchasesBusy)
-                if isRestoringPurchases { ProgressView().tint(.white) }
-            }
-            if let purchaseIssue { footnote(purchaseIssue) }
-            footnote("使用购买时的 App Store 账户恢复 One Cassette Pro。")
-        }
+    // MARK: - One Cassette Pro Editorial Studio Pass Card
+
+    private var proCard: some View {
+        OneTapeProCard(
+            isPro: isPro,
+            proPrice: proPrice,
+            proStatus: proStatus,
+            purchaseIssue: purchaseIssue,
+            purchasesBusy: purchasesBusy,
+            isRestoringPurchases: isRestoringPurchases,
+            onStudio: onStudio,
+            onRestorePurchases: onRestorePurchases
+        )
     }
+
+    // MARK: - Launch Splash & Packaging Unwrap Card
 
     private var openingDemo: some View {
-        Button(action: onReplayOpening) {
-            HStack(spacing: 15) {
-                Image(systemName: "play.rectangle.on.rectangle")
-                    .font(.system(size: 23, weight: .light))
-                    .foregroundStyle(Color(red: 0.89, green: 0.57, blue: 0.35))
-                    .frame(width: 48, height: 48)
-                    .background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 13))
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("开屏动画").font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.9))
-                    Text("上滑开盒，左滑入仓。")
-                        .font(.system(size: 12)).foregroundStyle(.white.opacity(0.44))
+        VStack(spacing: 0) {
+            Button(action: onReplaySplash) {
+                HStack(spacing: 14) {
+                    Image(systemName: "play.rectangle.on.rectangle")
+                        .font(.system(size: 19, weight: .light))
+                        .foregroundStyle(accent)
+                        .frame(width: 40, height: 40)
+                        .background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 11))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("开屏动画").font(.system(size: 15.5, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.9))
+                        Text("暖白迷你卡座按键起转，自动进入主页。")
+                            .font(.system(size: 12)).foregroundStyle(.white.opacity(0.44))
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 6)
+                    Text("演示").font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(accent)
                 }
-                Spacer(minLength: 6)
-                Text("重新演示").font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color(red: 0.89, green: 0.57, blue: 0.35))
-            }
-            .padding(15)
-            .frame(maxWidth: .infinity, minHeight: 80, alignment: .leading)
-            .background(.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 20))
-            .overlay { RoundedRectangle(cornerRadius: 20).strokeBorder(.white.opacity(0.08), lineWidth: 0.5) }
-            .contentShape(RoundedRectangle(cornerRadius: 20))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("重新演示开屏动画")
-        .accessibilityIdentifier("settings.opening")
-    }
-
-    private var widgetMetrics: OneTapeWidgetMetrics {
-        OneTapeWidgetMetrics.forScreen(width: screenSize.width, height: screenSize.height)
-    }
-
-    private var widgets: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("小组件")
-                .padding(.leading, 7)
-            ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 16) {
-                    widget(size: .small)
-                    widget(size: .medium)
-                    widget(size: .large)
-                }
-                .padding(.horizontal, 7)
-            }
-            .scrollIndicators(.hidden)
-            footnote("在主屏幕上长按，然后轻点“编辑”>“添加小组件”。")
-                .padding(.leading, 7)
-        }
-    }
-
-    private func widget(size: OneTapeWidgetSize) -> some View {
-        VStack(alignment: .leading, spacing: 11) {
-            OneTapeWidgetPreview(
-                size: size,
-                snapshot: widgetSnapshot,
-                artwork: widgetArtwork,
-                metrics: widgetMetrics,
-                onTogglePlayback: onTogglePlayback,
-                onNextTrack: onNextTrack
-            )
-            .accessibilityIdentifier("settings.widget.\(size.rawValue)")
-            Text(size.title)
-                .font(.system(size: 12))
-                .foregroundStyle(.white.opacity(0.45))
-        }
-        .accessibilityElement(children: size == .small ? .combine : .contain)
-        .accessibilityLabel(widgetSnapshot.previewAccessibilityLabel(size: size))
-    }
-
-    private var remoteControl: some View {
-        settingsSection("遥控器") {
-            row("iPad 遥控器", identifier: "settings.remote") {
-                show("iPad 遥控器", "遥控器将在后续版本接入。当前不会发起配对或连接其他设备。")
-            }
-        }
-    }
-
-    private var screen: some View {
-        settingsSection("屏幕") {
-            Toggle("Keep the screen awake", isOn: $keepAwake)
-                .font(.system(size: 17))
-                .foregroundStyle(.white.opacity(0.85))
-                .tint(Color(red: 0.78, green: 0.48, blue: 0.28))
-                .frame(minHeight: 44)
-                .accessibilityIdentifier("settings.keepAwake")
-        }
-    }
-
-    private var musicSource: some View {
-        settingsSection("音乐来源") {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("本地音乐与 Navidrome")
-                    Text(connectionName.map { "已连接：\($0)" } ?? "本地文件导入 · 连接你的音乐服务器")
-                        .font(.caption).foregroundStyle(.white.opacity(0.45))
-                        .accessibilityIdentifier("settings.connection")
-                }
-                Spacer()
-            }
-            .font(.system(size: 17))
-            .foregroundStyle(.white.opacity(0.85))
-            .frame(minHeight: 44)
-            Button(action: onAddMusic) {
-                Label("添加音乐…", systemImage: "plus")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(Rectangle())
+                .padding(.horizontal, 15)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityIdentifier("settings.addMusic")
-        }
-    }
+            .accessibilityLabel("演示开屏小动画")
+            .accessibilityIdentifier("settings.splash")
 
-    private var roomListening: some View {
-        settingsSection("声音") {
-            previewToggle("聆听环境", identifier: "settings.roomListening") {
-                show("聆听环境", "环境感应将在后续版本接入，当前不会访问麦克风或录音。")
+            cardDivider
+
+            Toggle("启动时播放开屏动画", isOn: splashEnabled)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(.white.opacity(0.76))
+                .tint(accent)
+                .padding(.horizontal, 15)
+                .padding(.vertical, 9)
+                .accessibilityIdentifier("settings.splash.enabled")
+
+            cardDivider
+
+            Button(action: onReplayOpening) {
+                HStack(spacing: 10) {
+                    Text("首次拆包装引导")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.76))
+                    Spacer()
+                    Text("重新拆封")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(accent)
+                }
+                .padding(.horizontal, 15)
+                .padding(.vertical, 11)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            footnote("播放中的本地音乐与 Navidrome 音乐可直接驱动屏幕。聆听环境尚未接入，当前不会访问麦克风。")
+            .buttonStyle(.plain)
+            .accessibilityLabel("重新演示首次拆包装引导")
+            .accessibilityIdentifier("settings.opening")
         }
+        .background(.white.opacity(0.038), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(0.08), lineWidth: 0.5) }
     }
 
-    private var studio: some View {
-        settingsSection("ONE CASSETTE STUDIO") {
-            HStack {
-                Text("所有外观")
-                    .font(.system(size: 17))
-                    .foregroundStyle(.white.opacity(0.85))
-                Spacer()
-                smallButton("预览", identifier: "settings.studio", action: onStudio)
+    // MARK: - Live Home Screen Widgets Showcase
+
+    private var widgets: some View {
+        OneTapeWidgetSettingsShowcase(
+            snapshot: widgetSnapshot,
+            artwork: widgetArtwork,
+            screenSize: screenSize,
+            onTogglePlayback: onTogglePlayback,
+            onNextTrack: onNextTrack
+        )
+    }
+
+    // MARK: - Music & Playback Grouped Card
+
+    private var musicAndPlayback: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle("音乐与播放")
+
+            VStack(spacing: 0) {
+                Button(action: onAddMusic) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("本地音乐与 Navidrome")
+                                .font(.system(size: 15.5))
+                                .foregroundStyle(.white.opacity(0.88))
+                            Text(connectionName.map { "已连接：\($0)" } ?? "导入本地音频或连接服务器")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.white.opacity(0.42))
+                                .accessibilityIdentifier("settings.connection")
+                        }
+                        Spacer()
+                        Text("添加")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(accent)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.36))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 13)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("settings.addMusic")
+
+                cardDivider
+
+                Toggle("保持屏幕常亮", isOn: $keepAwake)
+                    .font(.system(size: 15.5))
+                    .foregroundStyle(.white.opacity(0.88))
+                    .tint(accent)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .accessibilityIdentifier("settings.keepAwake")
+
+                cardDivider
+
+                // Preview toggles with honest explanations
+                Toggle("聆听环境", isOn: Binding(get: { false }, set: { _ in
+                    show("聆听环境", "环境感应将在后续版本接入，当前不会访问麦克风或录音。")
+                }))
+                .font(.system(size: 15.5))
+                .foregroundStyle(.white.opacity(0.88))
+                .tint(accent)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .accessibilityValue("尚未接入")
+                .accessibilityIdentifier("settings.roomListening")
+
+                cardDivider
+
+                cardRow("iPad 遥控器", identifier: "settings.remote") {
+                    show("iPad 遥控器", "遥控器将在后续版本接入，当前不会发起配对或连接其他设备。")
+                }
             }
-            .frame(minHeight: 44)
-        }
-    }
-
-    private var about: some View {
-        settingsSection("关于") {
-            row("One Cassette", identifier: "settings.about") {
-                show("One Cassette", "把自己的音乐装进一盘磁带。支持本地文件导入与 Navidrome 音乐库，音乐由同一个播放器播放。")
+            .background(.white.opacity(0.038), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
             }
-            row("隐私政策", identifier: "settings.privacy") { supportDestination = .privacy }
-            row("用户服务协议", identifier: "settings.terms") { supportDestination = .terms }
-            row("付费说明", identifier: "settings.payment") { supportDestination = .payment }
-            row("联系我们", identifier: "settings.contact") { supportDestination = .contact }
-            row("问题反馈", identifier: "settings.feedback") { supportDestination = .feedback }
         }
     }
 
-    private func settingsSection<Content: View>(
-        _ title: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle(title)
-            content()
+    // MARK: - Support & About Grouped Card (HarmonyOS Parity, Concise iOS Style)
+
+    private var supportSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle("支持")
+
+            VStack(spacing: 0) {
+                cardRow("帮助与反馈", identifier: "settings.feedback") {
+                    supportDestination = .feedback
+                }
+                cardDivider
+                cardRow("投诉举报", identifier: "settings.report") {
+                    reportVisible = true
+                }
+                cardDivider
+                cardRow("联系我们", identifier: "settings.contact") {
+                    supportDestination = .contact
+                }
+                cardDivider
+                cardRow("关于我们", identifier: "settings.about") {
+                    aboutVisible = true
+                }
+            }
+            .background(.white.opacity(0.038), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
+            }
         }
+    }
+
+    private var versionFooter: some View {
+        VStack(spacing: 4) {
+            Text("One Cassette")
+                .font(.system(size: 12.5, weight: .medium))
+                .foregroundStyle(.white.opacity(0.36))
+            Text(OneTapeMailURL.version())
+                .font(.custom("GeistMono-Regular", fixedSize: 11))
+                .foregroundStyle(.white.opacity(0.26))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 4)
+    }
+
+    // MARK: - Helpers
+
+    private var cardDivider: some View {
+        Rectangle()
+            .fill(.white.opacity(0.07))
+            .frame(height: 0.5)
+            .padding(.horizontal, 16)
     }
 
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 12, weight: .semibold))
-            .tracking(2)
+            .tracking(1.6)
             .foregroundStyle(.white.opacity(0.42))
+            .padding(.leading, 4)
             .accessibilityAddTraits(.isHeader)
     }
 
-    private func footnote(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 12))
-            .foregroundStyle(.white.opacity(0.34))
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func row(_ title: String, identifier: String, action: @escaping () -> Void) -> some View {
+    private func cardRow(_ title: String, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
                 Text(title)
+                    .font(.system(size: 15.5))
+                    .foregroundStyle(.white.opacity(0.88))
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.45))
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.36))
             }
-            .font(.system(size: 17))
-            .foregroundStyle(.white.opacity(0.85))
-            .frame(minHeight: 44)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
             .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
-    }
-
-    private func previewToggle(
-        _ title: String,
-        identifier: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        // This binding deliberately never enables a system feature. A tap
-        // explains the pending integration instead of faking permissions/state.
-        Toggle(title, isOn: Binding(get: { false }, set: { _ in action() }))
-            .font(.system(size: 17))
-            .foregroundStyle(.white.opacity(0.85))
-            .tint(Color(red: 0.78, green: 0.48, blue: 0.28))
-            .frame(minHeight: 44)
-            .accessibilityValue("尚未接入")
-            .accessibilityIdentifier(identifier)
-    }
-
-    private func smallButton(
-        _ title: String,
-        identifier: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.92))
-                .padding(.horizontal, 16)
-                .frame(minHeight: 36)
-                .background(Color(white: 0.14), in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
