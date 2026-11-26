@@ -8,7 +8,7 @@ struct StillroomApp: App {
             if Self.usesLegacyPresentation {
                 LegacyStillroomHost()
             } else {
-                OneTapeRoot()
+                OneTapeRoot(music: OneTapeWidgetCommandBridge.shared.activeStore())
             }
         }
     }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct OneTapeSettingsView: View {
     let connectionName: String?
@@ -11,6 +12,11 @@ struct OneTapeSettingsView: View {
     let isRestoringPurchases: Bool
     let onRestorePurchases: () -> Void
     @Binding var keepAwake: Bool
+    var widgetSnapshot: OneTapeWidgetSnapshot = .empty
+    var widgetArtwork: UIImage? = nil
+    var screenSize: CGSize = CGSize(width: 393, height: 852)
+    var onTogglePlayback: () -> Void = {}
+    var onNextTrack: () -> Void = {}
 
     @State private var notice: SettingsNotice?
     @State private var supportDestination: OneTapeSupportDestination?
@@ -104,6 +110,10 @@ struct OneTapeSettingsView: View {
         .accessibilityIdentifier("settings.opening")
     }
 
+    private var widgetMetrics: OneTapeWidgetMetrics {
+        OneTapeWidgetMetrics.forScreen(width: screenSize.width, height: screenSize.height)
+    }
+
     private var widgets: some View {
         VStack(alignment: .leading, spacing: 14) {
             sectionTitle("小组件")
@@ -122,20 +132,23 @@ struct OneTapeSettingsView: View {
         }
     }
 
-    private func widget(size: OneTapeWidgetPreview.Size) -> some View {
-        Button {
-            show("小组件预览", "当前可浏览小、中、大三种样式，小组件功能将在后续版本接入。")
-        } label: {
-            VStack(alignment: .leading, spacing: 11) {
-                OneTapeWidgetPreview(size: size)
-                Text(size.title)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.45))
-            }
+    private func widget(size: OneTapeWidgetSize) -> some View {
+        VStack(alignment: .leading, spacing: 11) {
+            OneTapeWidgetPreview(
+                size: size,
+                snapshot: widgetSnapshot,
+                artwork: widgetArtwork,
+                metrics: widgetMetrics,
+                onTogglePlayback: onTogglePlayback,
+                onNextTrack: onNextTrack
+            )
+            .accessibilityIdentifier("settings.widget.\(size.rawValue)")
+            Text(size.title)
+                .font(.system(size: 12))
+                .foregroundStyle(.white.opacity(0.45))
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(size.title)小组件预览，还没有磁带")
-        .accessibilityIdentifier("settings.widget.\(size.rawValue)")
+        .accessibilityElement(children: size == .small ? .combine : .contain)
+        .accessibilityLabel(widgetSnapshot.previewAccessibilityLabel(size: size))
     }
 
     private var remoteControl: some View {

@@ -8,6 +8,20 @@
 
 下方是既有版本的历史记录，其中的构建与安装流程不作为后续任务的默认要求。记录中引用的 Evidence、Artifacts、分析与生成目录为本机资料，未随公开源码上传。
 
+## 2026-11-26 / build100 桌面小组件与设置页实时预览复刻（WidgetKit + AppIntents）
+
+对照原版 Cassette Player（1.0.3）小组件结构、三尺寸排版与状态逻辑，在本仓库完成 WidgetKit 桌面小组件扩展与设置页同源实时预览（仅改动本 iOS 工程，不涉及鸿蒙与网页工程）：
+
+- **领域快照与时间线投影（[`OneTapeWidgetSnapshot.swift`](Stillroom/Domain/OneTapeWidgetSnapshot.swift)）**：定义 `OneTapeWidgetSnapshot`、`OneTapeWidgetSize`（小 `170×170` / 中 `364×170` / 大 `364×382` 设计画布等比缩放）与按机型宽度匹配的 `OneTapeWidgetMetrics`；复刻 `000`～`999` 磁带计数器、专辑百分比、`36` 圈盘芯步进旋转，以及播放中基于 `albumDuration` 与 `playbackRemaining` 的后台时间线推演（到达末尾自动停转）。
+- **App Group 共享缓存与后台播控（[`OneTapeWidgetSharedStore.swift`](Stillroom/Services/OneTapeWidgetSharedStore.swift)、[`OneTapeWidgetIntents.swift`](Stillroom/Services/OneTapeWidgetIntents.swift)）**：主应用与小组件通过 `group.com.liuhang.stillroom` 共享原子写入的 JSON 快照与 `320px` 降采样封面图（`widget-cover.jpg`），并在关键状态变更、大幅拖动或切后台时节流触发 `WidgetCenter` 刷新；新增 `OneTapeTogglePlaybackIntent` / `OneTapeNextTrackIntent` / `OneTapePreviousTrackIntent`（`AudioPlaybackIntent`）通过 `OneTapeWidgetCommandBridge` 路由至同一权威 `OneTapeMusicStore` / `PlayerStore`，并注册 `onecassette://player` 深链回播放器页。
+- **原版三尺寸样式与复古磁带绘制（[`OneTapeWidgetCassetteView.swift`](Stillroom/Features/OneTape/Widget/OneTapeWidgetCassetteView.swift)、[`OneTapeWidgetView.swift`](Stillroom/Features/OneTape/Widget/OneTapeWidgetView.swift)）**：使用纯矢量与渐变绘制横版复古浅色磁带壳体（四角螺丝、纸质标签带专辑封面/空态徽章、`01` 曲号、随进度变化的卷带窗、双齿盘芯、`A / 标准型 • 120µs / C60` 及底部梯形导孔），并完整实现深/浅色与 iOS 18 着色模式下的小（`A 面 / C60 / 状态 / 000`）、中（左磁带 + 右曲名艺人 + 播放/下一首实体键）、大（顶栏 + 大磁带 + 曲名与双键 + 三格机械计数器 / 进度条 / 百分比）三套布局，背景自动叠加封面主色调晕染与左上柔光。
+- **WidgetKit 扩展与设置页复用（[`StillroomWidget/OneTapeWidgetBundle.swift`](StillroomWidget/OneTapeWidgetBundle.swift)、[`OneTapeWidgetPreview.swift`](Stillroom/Features/OneTape/Panels/OneTapeWidgetPreview.swift)、[`OneTapeSettingsView.swift`](Stillroom/Features/OneTape/Panels/OneTapeSettingsView.swift)、[`OneTapeRoot.swift`](Stillroom/Features/OneTape/OneTapeRoot.swift)、[`Tools/generate-project.rb`](Tools/generate-project.rb)）**：工程新增 `StillroomWidget.appex` 扩展目标并嵌入主包 `PlugIns/`；设置页「小组件」区块改为直接复用 `OneTapeWidgetCardView` 实时联动当前专辑、封面色调与播放状态，中/大号卡片上的播放与下一首按钮可直接在设置页控制播放，移除原静态占位弹窗。
+- **验证与未验证边界（如实记录）**：
+  - 源码检查：`node Tools/check-source.cjs` 通过（`438` 个维护源码文件，最大 `681` 行，无超 `800` 行文件）。
+  - 隔离模拟器单元测试：在 `iPhone 18 Pro`（`9514DB13-0DA2-41B2-AB1C-0A88222A76DB`）通过 [`OneTapeWidgetTests`](StillroomTests/OneTapeWidgetTests.swift)（6/6）与 [`OneTapeSettingsTests`](StillroomTests/OneTapeSettingsTests.swift)（1/1），共 **7/7** 项通过（0 失败/跳过），并逐张核验空态与播放态下深/浅色三尺寸 `3x` 渲染图。
+  - 预览模拟器安装与状态核验：已保留数据覆盖安装并启动到 `Stillroom iPhone 16 Pro`（`77CFAADC-0D5D-4E5B-864A-B5019465A476`，`PID 30191`）；`pluginkit` 确认 `com.liuhang.stillroom.widget (0.4.0)` 已注册，`group.com.liuhang.stillroom` 已自动写入当前专辑快照与封面缓存。
+  - 未验证项：尚未在模拟器主屏幕手动拖拽添加小组件并执行桌面按钮端到端点击实测，未执行全量其余单元/UI 套件，未做 USB 真机签名（含真机 App Group Provisioning Profile）与真机实测。
+
 ## 2026-11-11 / build99 「你的绘画与照片」1:1 界面与流程对齐版
 
 对照 `CassettePrintAnalysis/01-你的绘画与照片/` 实机镜像截图（`01-print-block.png`～`05-studio-paywall.png`）、逆向报告与本地化词库，在本仓库完成「你的绘画与照片」模块细节对齐与重制（不改动鸿蒙与网页工程）：

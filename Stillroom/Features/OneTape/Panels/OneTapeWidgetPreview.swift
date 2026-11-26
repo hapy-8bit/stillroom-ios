@@ -1,55 +1,38 @@
 import SwiftUI
+import UIKit
 
+/// Renders a live, device-accurate Home Screen widget preview card inside
+/// Settings using the exact same view hierarchy as the WidgetKit extension.
 struct OneTapeWidgetPreview: View {
-    enum Size: String {
-        case small, medium, large
-        var title: String {
-            switch self {
-            case .small: "小"
-            case .medium: "中"
-            case .large: "大"
-            }
-        }
-        var width: CGFloat { self == .small ? 152 : 320 }
-        var height: CGFloat { self == .large ? 320 : 152 }
-    }
+    typealias Size = OneTapeWidgetSize
 
-    let size: Size
+    let size: OneTapeWidgetSize
+    var snapshot: OneTapeWidgetSnapshot = .empty
+    var artwork: UIImage? = nil
+    var metrics: OneTapeWidgetMetrics = OneTapeWidgetMetrics.forScreen(width: 393, height: 852)
+    var onTogglePlayback: () -> Void = {}
+    var onNextTrack: () -> Void = {}
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            LinearGradient(colors: [Color(white: 0.18), Color(white: 0.105)],
-                startPoint: .topLeading, endPoint: .bottomTrailing)
-
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text(size == .small ? "A 面" : "● 已装入")
-                    Spacer()
-                    Text("C60")
-                }
-                .font(.system(size: 8, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.5))
-                .padding(.horizontal, 14)
-                .padding(.top, 14)
-
-                OneTapeTapeThumbnail(tilt: -9)
-                    .padding(.horizontal, size == .small ? 6 : 18)
-                    .padding(.top, size == .large ? 30 : 4)
-
-                HStack {
-                    Label("已装入", systemImage: "pause.fill")
-                    Spacer()
-                    Text("000").italic()
-                }
-                .font(.system(size: 8, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.75))
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
-            }
+        let cardSize = metrics.size(for: size)
+        ZStack {
+            OneTapeWidgetBackground(snapshot: snapshot)
+            OneTapeWidgetCardView(
+                snapshot: snapshot,
+                size: size,
+                artwork: artwork,
+                controlsMode: .callbacks(
+                    onTogglePlayback: onTogglePlayback,
+                    onNextTrack: onNextTrack
+                )
+            )
         }
-        .frame(width: size.width, height: size.height)
-        .clipShape(RoundedRectangle(cornerRadius: 23, style: .continuous))
-        .accessibilityHidden(true)
+        .frame(width: cardSize.width, height: cardSize.height)
+        .clipShape(RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
+                .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
+        }
     }
 }
 

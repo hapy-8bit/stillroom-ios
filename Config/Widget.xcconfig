@@ -1,0 +1,16 @@
+// Keep the developer team local; the widget extension shares the app group.
+#include? "Signing.local.xcconfig"
+PRODUCT_BUNDLE_IDENTIFIER = com.liuhang.stillroom.widget
+MARKETING_VERSION = 0.4.0
+CURRENT_PROJECT_VERSION = 100
+IPHONEOS_DEPLOYMENT_TARGET = 18.0
+SWIFT_VERSION = 5.0
+SWIFT_STRICT_CONCURRENCY = targeted
+TARGETED_DEVICE_FAMILY = 1
+CODE_SIGN_STYLE = Automatic
+INFOPLIST_FILE = StillroomWidget/Info.plist
+CODE_SIGN_ENTITLEMENTS = StillroomWidget/StillroomWidget.entitlements
+SKIP_INSTALL = YES
+APPLICATION_EXTENSION_API_ONLY = YES
+ENABLE_USER_SCRIPT_SANDBOXING = YES
+GENERATE_INFOPLIST_FILE = NO

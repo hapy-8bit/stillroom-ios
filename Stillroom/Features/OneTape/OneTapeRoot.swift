@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 struct OneTapeRoot: View {
     @StateObject private var store = OneTapeStore()
-    @StateObject private var music = OneTapeMusicStore()
+    @StateObject private var music: OneTapeMusicStore
     @StateObject private var orientation = OneTapeOrientationMonitor()
     @StateObject private var opening = OneTapeOpeningStore()
     @StateObject private var purchases = OneTapePurchaseStore()
@@ -16,6 +16,14 @@ struct OneTapeRoot: View {
     @State private var drawingRequest: OneTapeDrawingWorkflowRequest?
     @State private var halftoneRequest: OneTapeHalftoneWorkflowRequest?
     @State private var drawingOperationNotice: String?
+    @State private var viewportSize: CGSize = CGSize(width: 393, height: 852)
+
+    @MainActor
+    init(music: OneTapeMusicStore? = nil) {
+        let resolved = music ?? OneTapeMusicStore()
+        _music = StateObject(wrappedValue: resolved)
+        OneTapeWidgetCommandBridge.shared.attach(resolved)
+    }
     // Held via @State rather than @StateObject so 30Hz tilt updates only
     // invalidate leaf foil/body views instead of re-evaluating root chrome.
     @State private var tiltMonitor = OneTapeTiltMonitor()
@@ -189,10 +197,18 @@ struct OneTapeRoot: View {
                 request: $drawingRequest,
                 notice: $drawingOperationNotice
             ))
+            .onAppear { viewportSize = geometry.size }
+            .onChange(of: geometry.size) { _, newSize in viewportSize = newSize }
         }
         .ignoresSafeArea(.keyboard)
         .statusBarHidden(true)
         .preferredColorScheme(.dark)
+        .onOpenURL { url in
+            guard url.scheme == OneTapeWidgetConstants.deepLinkScheme else { return }
+            store.panel = nil
+            store.closeCustomization()
+            store.navigate(to: .player)
+        }
         .sheet(item: Binding(get: { store.panel }, set: { store.panel = $0 })) { panel in
             panelContent(panel)
         }
@@ -247,6 +263,7 @@ struct OneTapeRoot: View {
                 music.player.cancelWinding()
                 music.player.flushListeningLedger()
             }
+            syncWidget(force: phase != .active)
             syncTiltMonitor()
         }
         .onAppear {
@@ -257,6 +274,8 @@ struct OneTapeRoot: View {
                 store.navigate(to: .insights)
             }
             bodyArtworkColor = OneTapeArtworkColorSampler.color(from: currentArtwork)
+            OneTapeWidgetCommandBridge.shared.attach(music)
+            syncWidget(force: true)
             music.setTransportFeedbackActive(scenePhase == .active)
             store.activate(); orientation.start()
             syncTiltMonitor()
@@ -265,11 +284,16 @@ struct OneTapeRoot: View {
             opening.suspend()
             music.setTransportFeedbackActive(false)
             music.player.flushListeningLedger()
+            syncWidget(force: true)
             store.suspend(); orientation.stop(); music.cancel()
             tiltMonitor.stop()
         }
         .onChange(of: currentArtwork) { _, image in
             bodyArtworkColor = OneTapeArtworkColorSampler.color(from: image)
+            syncWidget(force: true)
+        }
+        .onChange(of: widgetSyncTrigger) { _, _ in
+            syncWidget(force: false)
         }
         .onChange(of: reduceMotion) { _, reduced in
             // Switching the accessibility setting mid-flight cancels the motion.
@@ -383,7 +407,12 @@ struct OneTapeRoot: View {
                 purchasesBusy: purchases.isBusy,
                 isRestoringPurchases: purchases.operation == .restore,
                 onRestorePurchases: purchases.restorePurchases,
-                keepAwake: $store.keepAwake
+                keepAwake: $store.keepAwake,
+                widgetSnapshot: widgetSnapshot,
+                widgetArtwork: currentArtwork,
+                screenSize: viewportSize,
+                onTogglePlayback: { transport(.play) },
+                onNextTrack: { transport(.next) }
             )
             .alert(item: $purchases.notice, content: purchaseAlert)
             .presentationDetents([.medium, .large])
@@ -447,6 +476,29 @@ struct OneTapeRoot: View {
 
     private var currentArtwork: UIImage? {
         music.player.currentTrack.flatMap { music.artwork(for: $0) }
+    }
+
+    private var widgetSnapshot: OneTapeWidgetSnapshot {
+        OneTapeWidgetCommandBridge.makeSnapshot(
+            from: music,
+            hasArtwork: currentArtwork != nil,
+            tint: bodyArtworkColor
+        )
+    }
+
+    private var widgetSyncTrigger: String {
+        let trackID = music.player.currentTrack?.id ?? ""
+        let bucket = Int(music.player.position / 3)
+        return "\(trackID)|\(music.player.isPlaying)|\(music.player.queue.ids.count)|\(bucket)"
+    }
+
+    private func syncWidget(force: Bool) {
+        guard !ProcessInfo.processInfo.arguments.contains("--one-tape-empty") else { return }
+        OneTapeWidgetSyncCoordinator.shared.sync(
+            snapshot: widgetSnapshot,
+            artwork: currentArtwork,
+            force: force
+        )
     }
 
     private var readout: OneTapePlaybackReadout {
