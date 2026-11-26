@@ -39,7 +39,14 @@ struct OneTapeAlbumDetail: View {
                                 // Artwork is intentionally display-only. The
                                 // button owns an independent full-cover hit area.
                                 Color.clear
-                                OneTapeCaseArtwork(collection: collection, artwork: artwork, layout: openingLayout)
+                                OneTapeCaseArtwork(
+                                    collection: collection,
+                                    artwork: artwork,
+                                    layout: .shelf,
+                                    compact: false,
+                                    isCurrent: isCurrentCollection,
+                                    isPlaying: isCurrentCollection && isPlaying
+                                )
                             }
                             .frame(width: cover.width, height: cover.height)
                             .contentShape(Rectangle())
@@ -61,19 +68,6 @@ struct OneTapeAlbumDetail: View {
                             if let onSetAlbumCover {
                                 Button("设置专辑封面", action: onSetAlbumCover)
                             }
-                        }
-                        if openingLayout == .grid {
-                            VStack(spacing: 5 * scale) {
-                                Text(collection.title)
-                                    .font(.system(size: 19 * scale, weight: .semibold))
-                                    .foregroundStyle(.white.opacity(0.94))
-                                    .lineLimit(2)
-                                Text(collection.subtitle)
-                                    .font(.system(size: 12 * scale))
-                                    .foregroundStyle(.white.opacity(0.5))
-                                    .lineLimit(1)
-                            }
-                            .padding(.top, 16 * scale)
                         }
                         controls(scale: scale)
                             .padding(.top, 18 * scale)
@@ -134,9 +128,22 @@ struct OneTapeAlbumDetail: View {
                                           origin: openingOrigin, pitch: openingPitch, layout: openingLayout)
         return Group {
             if openingLayout == .shelf {
-                OneTapeSpatialCase(collection: collection, artwork: artwork, angle: pose.angle)
+                OneTapeSpatialCase(
+                    collection: collection,
+                    artwork: artwork,
+                    angle: pose.angle,
+                    isCurrent: isCurrentCollection,
+                    isPlaying: isCurrentCollection && isPlaying
+                )
             } else {
-                OneTapeCaseArtwork(collection: collection, artwork: artwork, layout: openingLayout)
+                OneTapeCaseArtwork(
+                    collection: collection,
+                    artwork: artwork,
+                    layout: .shelf,
+                    compact: false,
+                    isCurrent: isCurrentCollection,
+                    isPlaying: isCurrentCollection && isPlaying
+                )
             }
         }
             .frame(width: pose.frame.width, height: pose.frame.height)

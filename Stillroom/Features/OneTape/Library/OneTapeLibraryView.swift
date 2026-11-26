@@ -62,6 +62,17 @@ struct OneTapeLibraryView: View {
                 )
                 .ignoresSafeArea(.container)
 
+                RadialGradient(
+                    colors: [focalCrateAtmosphere.opacity(0.82), .clear],
+                    center: .init(x: 0.5, y: 0.44),
+                    startRadius: 20,
+                    endRadius: max(geometry.size.width * 0.85, 280)
+                )
+                .ignoresSafeArea(.container)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: shelfScrollID)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+
                 ZStack(alignment: .top) {
                     if visibleCollections.isEmpty {
                         emptyState
@@ -174,6 +185,18 @@ struct OneTapeLibraryView: View {
         }
     }
 
+    private var currentCollectionID: String? {
+        guard let currentTrackID else { return nil }
+        return visibleCollections.first { $0.trackIDs.contains(currentTrackID) }?.id
+    }
+
+    private var focalCrateAtmosphere: Color {
+        guard layout == .shelf, selection == nil, !visibleCollections.isEmpty else { return .clear }
+        let focalID = shelfScrollID ?? visibleCollections.first?.id
+        guard let focalID, let art = artworks[focalID] else { return .clear }
+        return OneTapeCasePalette(artwork: art).atmosphere
+    }
+
     @ViewBuilder private var collectionDisplay: some View {
         switch layout {
         case .shelf:
@@ -181,6 +204,8 @@ struct OneTapeLibraryView: View {
                 collections: visibleCollections, artworks: artworks,
                 selectedID: selectedID, hidesSelected: true,
                 selectedOriginY: openingOrigin.midY,
+                currentCollectionID: currentCollectionID,
+                isPlaying: isPlaying,
                 onSelect: openCollection, onLoadArtwork: onLoadArtwork,
                 onBrowse: onBrowse, isReloadReady: reloadStage == .ready,
                 isActive: isActive && selection == nil && !isLayoutReloading,
@@ -189,7 +214,10 @@ struct OneTapeLibraryView: View {
         case .grid:
             OneTapeGridView(
                 collections: visibleCollections, artworks: artworks,
-                selectedID: selectedID, scrollID: $gridScrollID,
+                selectedID: selectedID,
+                currentCollectionID: currentCollectionID,
+                isPlaying: isPlaying,
+                scrollID: $gridScrollID,
                 onSelect: openCollection, onLoadArtwork: onLoadArtwork,
                 onBrowse: onBrowse, isReloadReady: reloadStage == .ready,
                 isActive: isActive && selection == nil && !isLayoutReloading
@@ -201,7 +229,7 @@ struct OneTapeLibraryView: View {
         guard target != layout, !isLayoutReloading else { return }
         onBrowse(.ended)
         isLayoutReloading = true
-        withAnimation(.easeIn(duration: reduceMotion ? 0.07 : 0.14)) { reloadStage = .clearing }
+        withAnimation(.easeIn(duration: reduceMotion ? 0.05 : 0.10)) { reloadStage = .clearing }
         pendingLayout = target
     }
 
@@ -209,7 +237,7 @@ struct OneTapeLibraryView: View {
         // This is a view-owned reload presentation. The keyed task cancels on
         // navigation/backgrounding, so it cannot later switch a hidden shelf.
         do {
-            try await Task.sleep(for: .milliseconds(reduceMotion ? 70 : 140))
+            try await Task.sleep(for: .milliseconds(reduceMotion ? 50 : 100))
             try Task.checkCancellation()
             guard isActive, pendingLayout == target else { return }
             var transaction = Transaction(animation: nil)
@@ -218,14 +246,14 @@ struct OneTapeLibraryView: View {
                 reloadStage = .loading
                 layout = target
             }
-            // Commit a hidden layout frame before its visible row-by-row reveal.
-            try await Task.sleep(for: .milliseconds(reduceMotion ? 80 : 160))
+            // Commit a hidden layout frame before its crisp staggered reveal.
+            try await Task.sleep(for: .milliseconds(reduceMotion ? 30 : 40))
             try Task.checkCancellation()
             guard isActive, pendingLayout == target else { return }
-            withAnimation(reduceMotion ? .easeOut(duration: 0.14) : .spring(duration: 0.4, bounce: 0.08)) {
+            withAnimation(reduceMotion ? .easeOut(duration: 0.12) : .spring(duration: 0.36, bounce: 0.08)) {
                 reloadStage = .ready
             }
-            try await Task.sleep(for: .milliseconds(reduceMotion ? 140 : 560))
+            try await Task.sleep(for: .milliseconds(reduceMotion ? 100 : 320))
             try Task.checkCancellation()
             guard isActive, pendingLayout == target else { return }
             isLayoutReloading = false
@@ -363,25 +391,26 @@ struct OneTapeLibraryView: View {
         let availableWidth = max(0, width - 32)
         return ZStack(alignment: .leading) {
             if !isSearching {
-                HStack(spacing: max(8, width * 0.065)) {
+                HStack(spacing: max(8, width * 0.025)) {
                     filterMenu
                     sectionPicker
-                    Color.clear.frame(width: 50, height: 50)
+                    layoutToggleButton
+                    Color.clear.frame(width: 46, height: 46)
                 }
-                .foregroundStyle(.white.opacity(0.62))
+                .foregroundStyle(.white.opacity(0.68))
                 .frame(width: availableWidth)
                 .transition(.move(edge: .leading))
             }
             searchBar
                 .frame(width: availableWidth)
-                .frame(width: isSearching ? availableWidth : 50, alignment: .leading)
+                .frame(width: isSearching ? availableWidth : 46, alignment: .leading)
                 .clipShape(Capsule())
                 .allowsHitTesting(isSearching)
                 .accessibilityHidden(!isSearching)
                 .frame(width: availableWidth, alignment: .trailing)
             if !isSearching {
                 Button(action: openSearch) {
-                    Color.clear.frame(width: 50, height: 50).contentShape(Circle())
+                    Color.clear.frame(width: 46, height: 46).contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("搜索音乐库")
@@ -389,20 +418,47 @@ struct OneTapeLibraryView: View {
                 .frame(width: availableWidth, alignment: .trailing)
             }
         }
-        .frame(width: availableWidth, height: 50)
+        .frame(width: availableWidth, height: 46)
         // Keep one search capsule anchored at the right. It grows leftward as
         // the controls leave, then collapses back into the same search button.
         .clipped()
+    }
+
+    private var layoutToggleButton: some View {
+        let activeLayout = pendingLayout ?? layout
+        let nextLayout: OneTapeLibraryLayout = activeLayout == .shelf ? .grid : .shelf
+        return Button {
+            selectLayout(nextLayout)
+        } label: {
+            Group {
+                if reduceMotion {
+                    Image(systemName: activeLayout == .shelf ? "square.grid.3x2" : "rectangle.stack")
+                } else {
+                    Image(systemName: activeLayout == .shelf ? "square.grid.3x2" : "rectangle.stack")
+                        .contentTransition(.symbolEffect(.replace))
+                }
+            }
+            .font(.system(size: 16.5, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.76))
+            .frame(width: 46, height: 46)
+            .background { LibraryCapsuleSurface() }
+            .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .disabled(isLayoutReloading)
+        .sensoryFeedback(.selection, trigger: layout)
+        .accessibilityLabel(activeLayout == .shelf ? "切换至平铺视图" : "切换至翻箱视图")
+        .accessibilityIdentifier("library.layoutToggle")
     }
 
     private var layoutPicker: some View {
         Picker("显示样式", selection: Binding(
             get: { pendingLayout ?? layout }, set: { selectLayout($0) }
         )) {
-            Label("叠放", systemImage: "rectangle.stack")
+            Label("翻箱", systemImage: "rectangle.stack")
                 .tag(OneTapeLibraryLayout.shelf)
                 .accessibilityIdentifier("library.layout.shelf")
-            Label("网格", systemImage: "square.grid.2x2")
+            Label("平铺", systemImage: "square.grid.3x2")
                 .tag(OneTapeLibraryLayout.grid)
                 .accessibilityIdentifier("library.layout.grid")
         }
@@ -422,16 +478,16 @@ struct OneTapeLibraryView: View {
                     }
                 } label: {
                     Text(item.title)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white.opacity(section == item ? 0.66 : 0.34))
+                        .font(.system(size: 14.5, weight: .bold))
+                        .foregroundStyle(.white.opacity(section == item ? 0.78 : 0.36))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 42)
+                        .frame(height: 38)
                         .background {
                             if section == item {
                                 Capsule()
-                                    .fill(.white.opacity(0.1))
+                                    .fill(.white.opacity(0.11))
                                     .overlay { Capsule().stroke(.white.opacity(0.15), lineWidth: 0.75) }
                             }
                         }
@@ -442,7 +498,7 @@ struct OneTapeLibraryView: View {
             }
         }
         .padding(4)
-        .frame(height: 50)
+        .frame(height: 46)
         .background { LibraryCapsuleSurface() }
     }
 
@@ -474,8 +530,8 @@ struct OneTapeLibraryView: View {
                 .accessibilityIdentifier("library.openSettings")
         } label: {
             Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 19, weight: .semibold))
-                .frame(width: 50, height: 50)
+                .font(.system(size: 17.5, weight: .semibold))
+                .frame(width: 46, height: 46)
                 .background { LibraryCapsuleSurface() }
         }
         .menuStyle(.borderlessButton)
@@ -486,13 +542,13 @@ struct OneTapeLibraryView: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 20, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(.white.opacity(0.75))
             if isSearching {
                 TextField("搜索磁带和艺人", text: $query)
-                .font(.system(size: 17))
+                .font(.system(size: 16.5))
                 .foregroundStyle(.white)
                 .focused($searchFocused)
                 .textInputAutocapitalization(.never)
@@ -503,7 +559,7 @@ struct OneTapeLibraryView: View {
                 .onSubmit { searchFocused = false }
             Button(action: closeSearch) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.8))
                     .frame(width: 28, height: 28)
                     .background(.white.opacity(0.1), in: Circle())
@@ -517,9 +573,9 @@ struct OneTapeLibraryView: View {
                 Spacer(minLength: 0)
             }
         }
-        .padding(.leading, isSearching ? 20 : 14.5)
-        .padding(.trailing, 11)
-        .frame(height: 50)
+        .padding(.leading, isSearching ? 18 : 13.5)
+        .padding(.trailing, 10)
+        .frame(height: 46)
         .background { LibraryCapsuleSurface() }
     }
 

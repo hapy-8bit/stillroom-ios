@@ -6,26 +6,44 @@ enum OneTapeAlbumOpeningStage: Equatable, Sendable {
 
 enum OneTapeCaseGeometry {
     static let portraitAspectRatio: CGFloat = 211.7 / 329
+    static let landscapeAspectRatio: CGFloat = 329 / 211.7
 
+    /// Asymmetric focal fan-out curve for the vertical crate:
+    /// The centered focal cassette tilts open to -18° (exposing ~95% of its
+    /// full horizontal artwork plus top spine), while cases above and below tuck
+    /// neatly back (-74° upper / -68° lower) without flipping onto the blank back.
     static func shelfAngle(pitch: CGFloat) -> Double {
-        -90 - Double(min(0.87, max(-0.87, pitch))) * 28
+        let clamped = Double(min(1, max(-1, pitch)))
+        let focus = crateFocus(for: pitch)
+        let resting = clamped < 0 ? -74.0 : -68.0
+        return resting + (-18.0 - resting) * focus
     }
 
+    /// Smooth bell weight in [0, 1] peaking at 1.0 when a crate case is at focal center.
+    static func crateFocus(for pitch: CGFloat) -> Double {
+        let clamped = Double(min(1, max(-1, pitch)))
+        return exp(-clamped * clamped * 4.2)
+    }
+
+    /// Both Crate (`.shelf`) and 3-column Horizontal Grid (`.grid`) share one
+    /// unified horizontal Norelco cassette aspect ratio (329 : 211.7).
     static func aspectRatio(for layout: OneTapeLibraryLayout) -> CGFloat {
-        layout == .shelf ? 1 / portraitAspectRatio : portraitAspectRatio
+        landscapeAspectRatio
     }
 
     static func dockedFrame(in viewport: CGSize, layout: OneTapeLibraryLayout) -> CGRect {
         let contentWidth = min(max(0, viewport.width - 64), 470)
-        let width = layout == .shelf ? contentWidth
-            : min(contentWidth * 0.72, max(0, viewport.height) * 0.38 * portraitAspectRatio, 270)
-        return CGRect(x: (viewport.width - width) / 2, y: 53 * contentWidth / 329,
-                      width: width, height: width / aspectRatio(for: layout))
+        return CGRect(
+            x: (viewport.width - contentWidth) / 2,
+            y: 53 * contentWidth / 329,
+            width: contentWidth,
+            height: contentWidth / landscapeAspectRatio
+        )
     }
 }
 
 /// Frames use the library's safe-area coordinate space, in logical points.
-/// The shelf frame starts at the spine hinge; the grid frame is the cover rect.
+/// The shelf frame starts at the spine hinge; the grid frame is the horizontal cover rect.
 struct OneTapeAlbumOpeningPose {
     let frame: CGRect
     let angle: Double
@@ -39,13 +57,12 @@ struct OneTapeAlbumOpeningPose {
                 frame = origin
                 angle = 0
             } else {
-                let width = origin.isEmpty ? (layout == .grid ? docked.width : min(max(0, viewport.width - 64), 470))
-                    : min(max(0, origin.width), max(0, viewport.width))
+                let width = origin.isEmpty ? docked.width : min(max(0, origin.width), max(0, viewport.width))
                 let height = width / OneTapeCaseGeometry.aspectRatio(for: layout)
                 let center = origin.isEmpty ? CGPoint(x: viewport.width / 2, y: viewport.height * 0.54)
                     : CGPoint(x: origin.midX, y: origin.midY)
                 frame = CGRect(x: center.x - width / 2,
-                               y: layout == .shelf ? center.y : center.y - height / 2,
+                               y: layout == .shelf ? center.y - height * 0.25 : center.y - height / 2,
                                width: width, height: height)
                 angle = layout == .shelf ? OneTapeCaseGeometry.shelfAngle(pitch: pitch) : 0
             }
@@ -53,7 +70,7 @@ struct OneTapeAlbumOpeningPose {
             let width = docked.width * 1.04
             let height = docked.height * 1.04
             frame = CGRect(x: (viewport.width - width) / 2,
-                           y: viewport.height * 0.54 - height / 2, width: width, height: height)
+                           y: viewport.height * 0.52 - height / 2, width: width, height: height)
             angle = 0
         case .docked, .revealing, .revealed:
             frame = docked

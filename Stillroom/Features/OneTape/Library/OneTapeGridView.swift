@@ -1,11 +1,14 @@
 import SwiftUI
 
-/// A second projection of the same collections. Scroll restoration targets a
-/// centered two-cover row, so choosing either column cannot shift the viewport.
+/// Three-column horizontal Norelco cassette wall ("平铺"). Replaces the old
+/// cropped vertical portrait list with crisp 1.55:1 landscape crystal jewel cases
+/// and full 1:1 album artwork per tile.
 struct OneTapeGridView: View {
     let collections: [MusicCollection]
     let artworks: [String: UIImage]
     let selectedID: String?
+    var currentCollectionID: String? = nil
+    var isPlaying = false
     @Binding var scrollID: String?
     let onSelect: (MusicCollection, CGRect, CGFloat) -> Void
     let onLoadArtwork: (MusicCollection) -> Void
@@ -14,39 +17,50 @@ struct OneTapeGridView: View {
     var isActive = true
     @State private var isBrowsing = false
 
+    private let columnsPerRow = 3
+
     var body: some View {
         GeometryReader { viewport in
             let width = max(0, viewport.size.width)
-            let inset = min(max(24, width * 0.10), width / 2)
+            let inset = min(20, max(14, width * 0.036))
             let contentWidth = max(0, width - inset * 2)
-            let spacing = min(26, contentWidth)
-            let columnWidth = (contentWidth - spacing) / 2
-            let coverWidth = min(columnWidth, width * 0.29, 180)
+            let spacing: CGFloat = width < 360 ? 8 : 10
+            let columnWidth = max(0, (contentWidth - spacing * CGFloat(columnsPerRow - 1)) / CGFloat(columnsPerRow))
+            let caseHeight = columnWidth / OneTapeCaseGeometry.landscapeAspectRatio
             let anchorIndex = collections.firstIndex { $0.id == scrollID } ?? 0
+
             ScrollView(.vertical) {
-                LazyVStack(spacing: 28) {
+                LazyVStack(spacing: 18) {
                     ForEach(rows) { row in
                         HStack(alignment: .top, spacing: spacing) {
-                            tile(row.first, index: row.index, columnWidth: columnWidth, coverWidth: coverWidth)
-                            if let second = row.second {
-                                tile(second, index: row.index + 1,
-                                     columnWidth: columnWidth, coverWidth: coverWidth)
-                            } else {
-                                Color.clear.frame(width: columnWidth, height: 1)
-                                    .accessibilityHidden(true).allowsHitTesting(false)
+                            ForEach(Array(row.items.enumerated()), id: \.element.id) { offset, item in
+                                tile(
+                                    item,
+                                    index: row.startIndex + offset,
+                                    columnWidth: columnWidth,
+                                    caseHeight: caseHeight
+                                )
+                            }
+                            if row.items.count < columnsPerRow {
+                                ForEach(0..<(columnsPerRow - row.items.count), id: \.self) { _ in
+                                    Color.clear
+                                        .frame(width: columnWidth, height: 1)
+                                        .accessibilityHidden(true)
+                                        .allowsHitTesting(false)
+                                }
                             }
                         }
-                        .frame(width: contentWidth, alignment: .center)
+                        .frame(width: contentWidth, alignment: .leading)
                         .modifier(OneTapeLibraryReloadReveal(ready: isReloadReady,
-                            order: min(abs(row.index / 2 - anchorIndex / 2), 4)))
+                            order: min(abs(row.startIndex / columnsPerRow - anchorIndex / columnsPerRow), 4)))
                         .id(row.id)
                     }
                 }
                 .scrollTargetLayout()
-                .frame(width: contentWidth, alignment: .center)
+                .frame(width: contentWidth, alignment: .leading)
                 .padding(.horizontal, inset)
-                .padding(.top, 82)
-                .padding(.bottom, 130)
+                .padding(.top, 74)
+                .padding(.bottom, 128)
                 .frame(width: width, alignment: .center)
             }
             .frame(width: width, height: max(0, viewport.size.height), alignment: .top)
@@ -74,31 +88,38 @@ struct OneTapeGridView: View {
     }
 
     private var rows: [OneTapeCoverRow] {
-        stride(from: 0, to: collections.count, by: 2).map { index in
-            OneTapeCoverRow(index: index, first: collections[index],
-                second: index + 1 < collections.count ? collections[index + 1] : nil)
+        stride(from: 0, to: collections.count, by: columnsPerRow).map { start in
+            let end = min(start + columnsPerRow, collections.count)
+            return OneTapeCoverRow(startIndex: start, items: Array(collections[start..<end]))
         }
     }
 
     private var rowScrollID: Binding<String?> {
         Binding(get: {
             guard let id = scrollID, let index = collections.firstIndex(where: { $0.id == id }) else { return nil }
-            // Normalize an older right-column anchor to its row's first cover.
-            return collections[index - index % 2].id
+            return collections[index - index % columnsPerRow].id
         }, set: { scrollID = $0 })
     }
 
     private func tile(_ collection: MusicCollection, index: Int,
-                      columnWidth: CGFloat, coverWidth: CGFloat) -> some View {
-        VStack(spacing: 10) {
+                      columnWidth: CGFloat, caseHeight: CGFloat) -> some View {
+        let isCurrent = currentCollectionID == collection.id
+        return VStack(alignment: .leading, spacing: 7) {
             GeometryReader { cell in
                 Button {
                     let origin = cell.frame(in: .named("oneTapeLibrary"))
                     onSelect(collection, origin, 0)
                 } label: {
                     ZStack {
-                        OneTapeCaseArtwork(collection: collection, artwork: artworks[collection.id], layout: .grid)
-                            .shadow(color: .black.opacity(0.4), radius: 5, y: 4)
+                        OneTapeCaseArtwork(
+                            collection: collection,
+                            artwork: artworks[collection.id],
+                            layout: .grid,
+                            compact: true,
+                            isCurrent: isCurrent,
+                            isPlaying: isPlaying && isCurrent
+                        )
+                        .shadow(color: .black.opacity(0.48), radius: 6, y: 4)
                         Color.clear
                     }
                     .contentShape(Rectangle())
@@ -109,30 +130,30 @@ struct OneTapeGridView: View {
                 .accessibilityValue("\(collection.songCount) 首")
                 .accessibilityIdentifier("grid.album.\(index)")
             }
-            .frame(width: coverWidth, height: coverWidth / OneTapeCaseGeometry.portraitAspectRatio)
+            .frame(width: columnWidth, height: caseHeight)
 
-            VStack(spacing: 5) {
+            VStack(alignment: .leading, spacing: 2.5) {
                 Text(collection.title)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.93))
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(isCurrent ? Color(red: 0.90, green: 0.60, blue: 0.30) : .white.opacity(0.90))
                 Text(collection.subtitle)
                     .font(.system(size: 10))
                     .foregroundStyle(.white.opacity(0.45))
             }
             .lineLimit(1)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 1)
             .accessibilityHidden(true)
         }
-        .frame(width: columnWidth)
+        .frame(width: columnWidth, alignment: .leading)
         .task(id: collection.id) { onLoadArtwork(collection) }
     }
 }
 
 private struct OneTapeCoverRow: Identifiable {
-    let index: Int
-    let first: MusicCollection
-    let second: MusicCollection?
-    var id: String { first.id }
+    let startIndex: Int
+    let items: [MusicCollection]
+    var id: String { items[0].id }
 }
 
 /// Reload staggers nearby visible rows rather than delaying by an absolute
@@ -144,14 +165,14 @@ struct OneTapeLibraryReloadReveal: ViewModifier {
 
     private var animation: Animation {
         if reduceMotion { return .easeOut(duration: 0.14) }
-        return ready ? .spring(duration: 0.4, bounce: 0.08).delay(Double(order) * 0.03)
-            : .easeIn(duration: 0.12)
+        return ready ? .spring(duration: 0.36, bounce: 0.08).delay(Double(order) * 0.025)
+            : .easeIn(duration: 0.10)
     }
 
     func body(content: Content) -> some View {
         content
             .opacity(ready ? 1 : 0)
-            .offset(y: reduceMotion || ready ? 0 : 18)
+            .offset(y: reduceMotion || ready ? 0 : 14)
             .animation(animation, value: ready)
     }
 }

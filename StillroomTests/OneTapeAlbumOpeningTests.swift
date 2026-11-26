@@ -15,7 +15,7 @@ final class OneTapeAlbumOpeningTests: XCTestCase {
         let revealed = pose(.revealed, viewport: viewport, origin: origin)
 
         XCTAssertEqual(folded.frame.midX, origin.midX, accuracy: 0.001)
-        XCTAssertEqual(folded.frame.minY, origin.midY, accuracy: 0.001)
+        XCTAssertEqual(folded.frame.minY, origin.midY - folded.frame.height * 0.25, accuracy: 0.001)
         XCTAssertLessThan(folded.angle, -60)
         XCTAssertEqual(standing.angle, 0)
         XCTAssertGreaterThan(standing.frame.midY, viewport.height / 2)
@@ -24,7 +24,7 @@ final class OneTapeAlbumOpeningTests: XCTestCase {
         XCTAssertGreaterThan(standing.frame.width, docked.frame.width)
 
         // The 53-point safe-area anchor becomes y112 in the observed window
-        // with a59-point top inset. Resource pixels are not layout units.
+        // with a 59-point top inset. Resource pixels are not layout units.
         XCTAssertEqual(docked.frame.midX, viewport.width / 2, accuracy: 0.001)
         XCTAssertEqual(docked.frame.minY, 53, accuracy: 0.001)
         XCTAssertEqual(docked.frame.width, 329, accuracy: 0.001)
@@ -56,7 +56,7 @@ final class OneTapeAlbumOpeningTests: XCTestCase {
         }
     }
 
-    func testScaledPortraitViewportsKeepCenteredPortraitDock() {
+    func testScaledViewportsKeepUnifiedHorizontalDockForGrid() {
         let small = pose(.docked, viewport: CGSize(width: 320, height: 568), layout: .grid)
         let large = pose(.docked, viewport: CGSize(width: 520, height: 1000), layout: .grid)
         let ratio = large.frame.width / small.frame.width
@@ -67,38 +67,42 @@ final class OneTapeAlbumOpeningTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(large.frame.minX, 32)
         XCTAssertEqual(large.frame.height / small.frame.height, ratio, accuracy: 0.000_001)
         XCTAssertGreaterThan(large.frame.minY, small.frame.minY)
-        XCTAssertEqual(large.frame.width / large.frame.height, 211.7 / 329, accuracy: 0.000_001)
+        XCTAssertEqual(large.frame.width / large.frame.height, 329 / 211.7, accuracy: 0.000_001)
 
         let wide = pose(.docked, viewport: CGSize(width: 834, height: 1194), layout: .grid)
-        XCTAssertEqual(wide.frame.width, 270, accuracy: 0.001)
+        XCTAssertEqual(wide.frame.width, 470, accuracy: 0.001)
         XCTAssertEqual(wide.frame.midX, 417, accuracy: 0.001)
     }
 
-    func testMissingOriginUsesLowerMiddleAndClampsShelfPitch() {
+    func testMissingOriginUsesFocalFanOutAndClampsShelfPitch() {
         let viewport = CGSize(width: 393, height: 759)
+        let center = pose(.folded, viewport: viewport, pitch: 0)
         let positive = pose(.folded, viewport: viewport, pitch: 36)
         let negative = pose(.folded, viewport: viewport, pitch: -36)
         XCTAssertEqual(positive.frame, negative.frame)
         XCTAssertEqual(positive.frame.midX, viewport.width / 2, accuracy: 0.001)
-        XCTAssertGreaterThan(positive.frame.minY, viewport.height / 2)
-        XCTAssertGreaterThan(negative.angle, -90)
-        XCTAssertLessThan(positive.angle, -90)
-        XCTAssertGreaterThan(positive.angle, -120)
+        XCTAssertEqual(center.angle, -18, accuracy: 0.001)
+        XCTAssertGreaterThan(negative.angle, -75)
         XCTAssertLessThan(negative.angle, -60)
+        XCTAssertGreaterThan(positive.angle, -70)
+        XCTAssertLessThan(positive.angle, -60)
     }
 
-    func testFoldedShelfUsesTappedSpineAsHingeAndRetainsItsViewingAngle() {
+    func testFoldedShelfOpensFocalCaseAndTucksUpperAndLowerNeighbors() {
         let viewport = CGSize(width: 393, height: 759)
-        let upper = CGRect(x: 32, y: 150, width: 329, height: 112)
-        let lower = CGRect(x: 32, y: 510, width: 329, height: 112)
-        let front = pose(.folded, viewport: viewport, origin: upper, pitch: -0.7)
-        let back = pose(.folded, viewport: viewport, origin: lower, pitch: 0.7)
-        XCTAssertEqual(front.frame.minY, 206, accuracy: 0.001,
-                       "The floating case must start at the tapped spine, not half a cover above it.")
-        XCTAssertEqual(back.frame.minY, 566, accuracy: 0.001)
-        XCTAssertGreaterThan(front.angle, -90, "An upper shelf case exposes its front paper.")
-        XCTAssertLessThan(back.angle, -90, "A lower shelf case exposes its back until it rolls forward.")
-        XCTAssertEqual((front.angle + back.angle) / 2, -90, accuracy: 0.001)
+        let upper = CGRect(x: 32, y: 150, width: 329, height: 132)
+        let middle = CGRect(x: 32, y: 330, width: 329, height: 132)
+        let lower = CGRect(x: 32, y: 510, width: 329, height: 132)
+        let topPose = pose(.folded, viewport: viewport, origin: upper, pitch: -0.75)
+        let focalPose = pose(.folded, viewport: viewport, origin: middle, pitch: 0)
+        let bottomPose = pose(.folded, viewport: viewport, origin: lower, pitch: 0.75)
+
+        XCTAssertEqual(focalPose.angle, -18, accuracy: 0.001,
+                       "The centered focal cassette opens comfortably to display its horizontal artwork.")
+        XCTAssertLessThan(topPose.angle, focalPose.angle - 35)
+        XCTAssertLessThan(bottomPose.angle, focalPose.angle - 30)
+        XCTAssertGreaterThan(topPose.angle, -90, "Upper cases keep their front artwork visible.")
+        XCTAssertGreaterThan(bottomPose.angle, -90, "Lower cases stay on their front face instead of flipping to the back.")
     }
 
 
