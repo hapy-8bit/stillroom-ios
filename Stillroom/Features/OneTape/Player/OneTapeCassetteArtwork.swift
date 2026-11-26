@@ -151,10 +151,15 @@ struct OneTapeCassetteArtwork: View {
     }
 
     private func metalReel(center: CGPoint) -> some View {
-        OneTapeMetalReelView(diameter: 224)
-            .modifier(OneTapeReelExposure(angle: center == supply ? supplyAngle : takeupAngle,
-                spread: reelExposureDegrees))
-            .position(center)
+        let angle = center == supply ? supplyAngle : takeupAngle
+        return OneTapeMetalReelView(
+            diameter: 224,
+            style: appearance.reelStyle,
+            finish: appearance.reelFinish,
+            angle: angle,
+            reelExposureDegrees: reelExposureDegrees
+        )
+        .position(center)
     }
 
     private var graphiteRelief: some View {

@@ -4,6 +4,7 @@ import SwiftUI
 struct OneTapeNavigation: View {
     let destination: OneTapeDestination
     let customizationVisible: Bool
+    let tapeStyle: OneTapeAppearance.TapeStyle
     let readout: OneTapePlaybackReadout
     let hasPlayedCurrentTrack: Bool
     let onPlayer: () -> Void
@@ -17,6 +18,7 @@ struct OneTapeNavigation: View {
     @State private var playerActivation = 0
     @State private var libraryActivation = 0
     @State private var insightsActivation = 0
+    @State private var customizeActivation = 0
     @State private var actionActivation = 0
 
     // Both glass surfaces share logical-point height and vertical center.
@@ -138,25 +140,43 @@ struct OneTapeNavigation: View {
 
     private var contextAction: some View {
         Button {
-            actionActivation += 1
-            withAnimation(selectionAnimation) {
-                switch destination {
-                case .player: onCustomize()
-                case .library: onImport()
-                case .insights: onSettings()
-                }
+            // Keep the customize hop trigger separate from the panel animation
+            // so the miniature tape runs its own two-phase spring bounce.
+            switch destination {
+            case .player:
+                customizeActivation += 1
+                withAnimation(selectionAnimation) { onCustomize() }
+            case .library:
+                actionActivation += 1
+                withAnimation(selectionAnimation) { onImport() }
+            case .insights:
+                actionActivation += 1
+                withAnimation(selectionAnimation) { onSettings() }
             }
         } label: {
-            actionSymbol
-            .font(.system(size: 25, weight: .regular))
-            .foregroundStyle(.white.opacity(0.8))
-            .frame(width: dockHeight, height: dockHeight)
-            .modifier(OneTapeNavigationSurface(shape: Circle()))
-            .contentShape(Circle())
+            actionContent
+                .frame(width: dockHeight, height: dockHeight)
+                .modifier(OneTapeNavigationSurface(shape: Circle()))
+                .contentShape(Circle())
         }
         .accessibilityLabel(actionLabel)
         .accessibilityIdentifier(actionIdentifier)
         .accessibilityAddTraits(destination == .player && customizationVisible ? .isSelected : [])
+        .sensoryFeedback(.selection, trigger: customizeActivation)
+    }
+
+    @ViewBuilder private var actionContent: some View {
+        if destination == .player {
+            OneTapeCustomiseTapeIcon(
+                tapeStyle: tapeStyle,
+                selected: customizationVisible,
+                taps: customizeActivation
+            )
+        } else {
+            actionSymbol
+                .font(.system(size: 25, weight: .regular))
+                .foregroundStyle(.white.opacity(0.8))
+        }
     }
 
     @ViewBuilder private var actionSymbol: some View {
@@ -202,6 +222,77 @@ struct OneTapeNavigation: View {
             Capsule().fill(.white.opacity(0.1))
                 .matchedGeometryEffect(id: "nav.selection", in: selection)
         }
+    }
+}
+
+/// Miniature tilted cassette preview for the bottom-right customize button,
+/// matching Cassette 1.0.5's `CustomiseTapeIcon` geometry, hop bounce, and
+/// level horizontal active indicator underneath the tilted shell.
+private struct OneTapeCustomiseTapeIcon: View {
+    let tapeStyle: OneTapeAppearance.TapeStyle
+    let selected: Bool
+    let taps: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var hop = false
+
+    // Proportional to Cassette 1.0.5's 46×29 icon inside a 64pt glass circle,
+    // scaled to our 72pt dock circle while matching the shell's 549.33:349.67 ratio.
+    private let iconWidth: CGFloat = 51
+    private let iconHeight: CGFloat = 32.5
+
+    private var previewAppearance: OneTapeAppearance {
+        var value = OneTapeAppearance()
+        value.tapeStyle = tapeStyle
+        value.printStyle = .blank
+        return value
+    }
+
+    var body: some View {
+        tapeArtwork
+            .frame(width: iconWidth, height: iconHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 3.9, style: .continuous))
+            .compositingGroup()
+            .shadow(color: .black.opacity(0.35), radius: 2.5, x: 0, y: 1.5)
+            .rotationEffect(.degrees(hop && !reduceMotion ? -12 : -6))
+            .scaleEffect(hop && !reduceMotion ? 1.12 : 1)
+            .opacity(selected ? 1 : 0.92)
+            .overlay(alignment: .bottom) {
+                Capsule()
+                    .fill(.white.opacity(selected ? 0.85 : 0))
+                    .frame(width: 15, height: 2.5)
+                    .offset(y: 9)
+            }
+            .onChange(of: taps) { _, _ in
+                guard !reduceMotion else { return }
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.55),
+                              completionCriteria: .logicallyComplete) {
+                    hop = true
+                } completion: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                        hop = false
+                    }
+                }
+            }
+            .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 1), value: selected)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+
+    private var tapeArtwork: some View {
+        let canvas = OneTapeCassetteStandard.portraitCanvasSize
+        let shell = OneTapeCassetteStandard.portraitShellFrame
+        // Scale by the opaque plastic shell (inset slightly to clear baked outer
+        // shadow pixels on ClassicShell) so the miniature fills its rounded clip cleanly.
+        let scale = max(iconWidth / (shell.height - 2), iconHeight / (shell.width - 2))
+        return OneTapeCassetteArtwork(
+            appearance: previewAppearance,
+            showsPrint: false,
+            showsFineTexture: false
+        )
+        .frame(width: canvas.width, height: canvas.height)
+        .scaleEffect(scale)
+        .rotationEffect(.degrees(-90))
+        .frame(width: iconWidth, height: iconHeight)
     }
 }
 

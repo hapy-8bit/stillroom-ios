@@ -33,7 +33,7 @@ struct OneTapeTransportMaterial: Equatable, Sendable {
     let symbol: RGB
     let usesOriginalArtwork: Bool
 
-    static let graphitePlaySymbol = RGB(0.86, 0.27, 0.14)
+    static let graphitePlaySymbol = RGB(0.93, 0.32, 0.14)
 
     static let original = OneTapeTransportMaterial(
         face: RGB(0.13, 0.13, 0.13), symbol: RGB(0.47, 0.47, 0.47),
@@ -45,10 +45,10 @@ struct OneTapeTransportMaterial: Equatable, Sendable {
             self.init(face: palette.key, symbol: palette.ink)
             return
         }
-        // Graphite's dark chrome keys and red play mark are part of its
-        // material identity, including when a manual shell color is selected.
+        // Graphite's satin gunmetal keys and warm orange play mark are part of
+        // its hardware identity, matching Cassette 1.0.5 `BodyGraphite`.
         if appearance.bodyStyle == .graphite {
-            self.init(face: RGB(0.17, 0.18, 0.18), symbol: RGB(0.78, 0.79, 0.78))
+            self.init(face: RGB(0.20, 0.21, 0.22), symbol: RGB(0.84, 0.85, 0.86))
             return
         }
         if appearance.bodyColor == .black {

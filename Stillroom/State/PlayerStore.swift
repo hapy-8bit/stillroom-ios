@@ -46,8 +46,14 @@ final class PlayerStore: ObservableObject {
     }
     @Published private(set) var favorites: Set<String>
     @Published private(set) var recentlyPlayedTrackIDs: [String] = []
+    @Published var listeningLedger: ListeningLedger = ListeningLedger()
+    @Published var liveListeningEvent: ListeningSessionEvent?
     private let defaults: UserDefaults
     private let playbackHistory: PlaybackHistoryStore
+    let listeningLedgerStore: ListeningLedgerStore
+    var listeningTracker = ListeningSessionTracker()
+    var lastPublishedLiveSecond = -1
+    var listeningLedgerFailureNotified = false
     private let repository: LibraryRepository
     private let directory: URL
     private let mediaOverrides: MediaOverridesStore
@@ -81,7 +87,7 @@ final class PlayerStore: ObservableObject {
     private let audio = AudioPlayback()
     let visualization = AudioVisualizationSignal()
     private let mediaSession = SystemMediaSession()
-    private var loadedID: String?
+    private(set) var loadedID: String?
     private var messageTask: Task<Void, Never>?
     private var importStopRequested = false
     private var remoteURL: ((RemoteTrackReference) throws -> URL)?
@@ -131,6 +137,10 @@ final class PlayerStore: ObservableObject {
          emptyLibrary: Bool = false, beforeLocalRestorePublication: (@MainActor () async -> Void)? = nil) {
         self.defaults = defaults
         playbackHistory = PlaybackHistoryStore(defaults: defaults)
+        let ledgerURL = directory?.appendingPathComponent("listening-ledger.json")
+            ?? ListeningLedgerStore.defaultURL(for: ProcessInfo.processInfo.arguments)
+        listeningLedgerStore = ListeningLedgerStore(fileURL: ledgerURL)
+        listeningLedger = listeningLedgerStore.ledger
         self.beforeLocalRestorePublication = beforeLocalRestorePublication
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Stillroom/Library", isDirectory: true)
@@ -165,12 +175,14 @@ final class PlayerStore: ObservableObject {
                 catch { self.notice("播放历史未能保存，原记录已保留。") }
             }
             self.snapshot = value
+            self.observeListeningSnapshot(value)
             if self.loadedID != nil && Date().timeIntervalSince(self.checkpointAt) >= 5 { self.rememberPlayback() }
             if self.loadedID != nil { self.mediaSession.update(track: self.current, snapshot: value, artwork: self.artworks[self.current.id]) }
         }
         audio.onFinish = { [weak self] in
             guard let self, !self.windingController.isWinding,
                   !self.trackWindupController.isActive else { return }
+            self.completeListeningSession()
             self.skip(1, automatic: true)
         }
         audio.onError = { [weak self] text in
@@ -249,6 +261,7 @@ final class PlayerStore: ObservableObject {
                 selection.allSatisfy({ $0.albumKey == track.albumKey }) ? "专辑 · " + track.album : "当前选择"
         }
         if current.id != track.id {
+            flushListeningLedger()
             recordTransition = transition ?? (current.albumKey == track.albumKey ? .relocate : .replace)
             selectionRevision += 1; restoredPosition = 0
             loadedID = nil
@@ -290,6 +303,7 @@ final class PlayerStore: ObservableObject {
         cancelWinding()
         // An unloaded engine has no media clock to replace a restored bookmark.
         if loadedID != nil { audio.pause() }
+        flushListeningLedger()
         rememberPlayback()
     }
     func toggle() { isPlaying || snapshot.isPreparing ? pause() : play() }
@@ -297,6 +311,7 @@ final class PlayerStore: ObservableObject {
         cancelWinding()
         guard currentTrack != nil else { return }
         guard craftedSession?.phase == nil || craftedSession?.phase == .listening else { return }
+        noteListeningSeek()
         recordTransition = .relocate; selectionRevision += 1; restoredPosition = 0; queueFinished = false
         if loadedID == nil {
             // Seeking before first play prepares the same engine without starting audio.

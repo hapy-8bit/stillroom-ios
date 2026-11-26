@@ -72,10 +72,23 @@ struct OneTapePlaybackModeKey: View {
     @ViewBuilder
     private var capSurface: some View {
         if let surface = appearance.bodyMaterial {
-            OneTapeMaterialKeySurface(material: surface, palette: surface.palette(color: appearance.bodyColor))
+            OneTapeMaterialKeySurface(finish: surface.keyFinish, palette: surface.palette(color: appearance.bodyColor))
                 .scaleEffect(Self.visualDiameter / OneTapeTransportGeometry.visualDiameter)
                 .frame(width: Self.visualDiameter, height: Self.visualDiameter)
                 .clipShape(Circle())
+        } else if appearance.bodyStyle == .graphite && appearance.bodyColor == .black {
+            OneTapeMaterialKeySurface(
+                finish: .graphiteHardware,
+                palette: OneTapeBodyMaterialPalette(
+                    shell: .init(0.56, 0.57, 0.58),
+                    key: material.face,
+                    ink: material.symbol,
+                    lcd: .init(0.89, 0.90, 0.91)
+                )
+            )
+            .scaleEffect(Self.visualDiameter / OneTapeTransportGeometry.visualDiameter)
+            .frame(width: Self.visualDiameter, height: Self.visualDiameter)
+            .clipShape(Circle())
         } else {
             machinedKey
         }

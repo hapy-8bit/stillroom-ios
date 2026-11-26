@@ -44,9 +44,17 @@ struct OneTapeCustomizationView: View {
                     .padding(.leading, 20)
                     .padding(.trailing, 10)
                     .padding(.bottom, 13)
-                if tab == .tape {
+                if tab == .tape || tab == .reel {
                     preview
                         .frame(height: min(196, max(130, geometry.size.width * 0.46)))
+                } else if tab == .screen {
+                    OneTapeScreenPreviewHeader(
+                        appearance: appearance,
+                        readout: readout,
+                        visualization: visualization
+                    )
+                    .padding(.horizontal, 22)
+                    .padding(.bottom, 10)
                 }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
@@ -183,8 +191,7 @@ struct OneTapeCustomizationView: View {
             )
         case .reel: OneTapeReelCustomization(appearance: $appearance)
         case .body: OneTapeBodyCustomization(appearance: $appearance)
-        case .screen: OneTapeScreenCustomization(appearance: $appearance,
-            readout: readout, visualization: visualization)
+        case .screen: OneTapeScreenCustomization(appearance: $appearance)
         }
     }
 
@@ -226,6 +233,9 @@ struct OneTapeCustomizationView: View {
         var preview = OneTapeAppearance()
         preview.tapeStyle = style
         preview.printStyle = .blank
+        preview.reelColor = appearance.reelColor
+        preview.reelStyle = appearance.reelStyle
+        preview.reelFinish = appearance.reelFinish
         return preview
     }
 

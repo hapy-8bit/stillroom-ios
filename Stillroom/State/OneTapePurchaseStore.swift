@@ -154,7 +154,7 @@ final class OneTapePurchaseStore: ObservableObject {
                 }
                 await service.finish(transaction.id)
                 notice = .init(title: isPro ? "购买成功" : "购买权益不可用",
-                    message: isPro ? "已购买 One Vinyl Pro，感谢支持。" : "此订单已退款或撤销，请在设置中恢复购买或联系开发者。")
+                    message: isPro ? "已购买 One Cassette Pro，感谢支持。" : "此订单已退款或撤销，请在设置中恢复购买或联系开发者。")
             case .pending:
                 notice = .init(title: "等待购买批准", message: "此购买正在等待 App Store 批准。批准后会自动更新 Pro 状态，也可在设置中恢复购买。")
             case .cancelled:
@@ -178,7 +178,7 @@ final class OneTapePurchaseStore: ObservableObject {
                 throw OneTapePurchaseError.failedVerification
             }
             notice = .init(title: restored ? "已恢复购买" : "未找到可恢复的购买",
-                message: restored ? "已恢复 One Vinyl Pro。" : "当前 App Store 账户没有有效的 One Vinyl Pro 购买。请确认使用购买时的账户。")
+                message: restored ? "已恢复 One Cassette Pro。" : "当前 App Store 账户没有有效的 One Cassette Pro 购买。请确认使用购买时的账户。")
         } catch OneTapePurchaseError.cancelled {
             notice = .init(title: "已取消恢复购买", message: "可在设置中再次恢复购买。")
         } catch is CancellationError {

@@ -25,8 +25,19 @@ struct OneTapeTransportKeyVisual: View {
     var body: some View {
         Group {
             if let surface = appearance.bodyMaterial {
-                materialKey(surface)
-            } else if material.usesOriginalArtwork || appearance.bodyStyle == .graphite {
+                materialKey(finish: surface.keyFinish, palette: surface.palette(color: appearance.bodyColor), graphite: false)
+            } else if appearance.bodyStyle == .graphite && appearance.bodyColor == .black {
+                materialKey(
+                    finish: .graphiteHardware,
+                    palette: OneTapeBodyMaterialPalette(
+                        shell: .init(0.56, 0.57, 0.58),
+                        key: material.face,
+                        ink: material.symbol,
+                        lcd: .init(0.89, 0.90, 0.91)
+                    ),
+                    graphite: true
+                )
+            } else if material.usesOriginalArtwork {
                 originalKey
             } else {
                 finishedKey
@@ -37,16 +48,32 @@ struct OneTapeTransportKeyVisual: View {
         .accessibilityHidden(true)
     }
 
-    private func materialKey(_ surface: OneTapeBodyMaterial) -> some View {
+    private func materialKey(
+        finish: OneTapeBodyKeyFinish,
+        palette: OneTapeBodyMaterialPalette,
+        graphite: Bool
+    ) -> some View {
         ZStack {
-            OneTapeMaterialKeySurface(material: surface, palette: surface.palette(color: appearance.bodyColor))
+            OneTapeMaterialKeySurface(finish: finish, palette: palette)
             if action == .play, illuminated {
+                let glowColor = graphite
+                    ? Color(red: 1.0, green: 0.45, blue: 0.16).opacity(0.32)
+                    : Color(red: 1.0, green: 0.94, blue: 0.78).opacity(0.24)
                 Circle().fill(RadialGradient(
-                    colors: [Color(red: 1, green: 0.94, blue: 0.76).opacity(0.26), .clear],
-                    center: .topLeading, startRadius: 0, endRadius: 49))
-                    .padding(6).blendMode(.screen)
+                    colors: [glowColor, .clear],
+                    center: .center, startRadius: 0, endRadius: diameter * 0.48))
+                    .padding(5).blendMode(.screen)
             }
-            glyph
+            if graphite && action == .play {
+                Image(systemName: symbol)
+                    .font(.system(size: 25 * OneTapeTransportGeometry.visualScale, weight: .medium))
+                    .foregroundStyle(OneTapeTransportMaterial.graphitePlaySymbol.color)
+                    .shadow(color: OneTapeTransportMaterial.graphitePlaySymbol.color.opacity(illuminated ? 0.65 : 0.20),
+                            radius: illuminated ? 4.5 : 1.5)
+                    .rotationEffect(.degrees(Double(quarterTurns) * 90))
+            } else {
+                glyph
+            }
         }
         .clipShape(Circle())
     }

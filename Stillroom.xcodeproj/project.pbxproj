@@ -43,6 +43,18 @@
 		13E50BE7C30F0B7B6934256E /* OrbitTurntableGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15CA6B8671229535167D921 /* OrbitTurntableGeometry.swift */; };
 		1440BC45F4605BF2BB70A8B6 /* OneTapePurchaseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F6B4CA84A7FDC4D8572291 /* OneTapePurchaseUITests.swift */; };
 		14A2B77250F7A3285EEA6FCF /* OneTapeTactileBodyRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAF9580D9E6EC8B2FCE1315 /* OneTapeTactileBodyRenderer.swift */; };
+		71E4961089668BA7D7BDC0D6 /* OneTapeBodyMetalEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF63451C30958C2E7046ED8 /* OneTapeBodyMetalEngine.swift */; };
+		065DB6BFC10E1E3E322B4CEE /* OneTapeScreenShaderSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6126FF904CD7AFED8A3D9949 /* OneTapeScreenShaderSource.swift */; };
+		01654552F7A04E469DD0A013 /* OneTapeScreenMetalEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D28D753C8571217C41A734 /* OneTapeScreenMetalEngine.swift */; };
+		9A26D48ADE09434DB00C7CE6 /* OneTapeScreenFieldSimulations.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E38FB087774BB2BD38A368 /* OneTapeScreenFieldSimulations.swift */; };
+		6EBE8D5D5BAB4ED8BC14F135 /* OneTapeNameSandSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB968277EE43DD92641A8D /* OneTapeNameSandSimulation.swift */; };
+		1C222866458B45CDBFD2FEA1 /* OneTapeScreenSimulations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA11881785B4A13896FAF20 /* OneTapeScreenSimulations.swift */; };
+		1F8ED1E77CEA3422F441F334 /* OneTapeSeeThroughPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA814E01C8957EDF044808 /* OneTapeSeeThroughPrimitives.swift */; };
+		877654DA729B229A701F4B12 /* OneTapeSeeThroughBaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45122D99823063F09F6E72B /* OneTapeSeeThroughBaker.swift */; };
+		8FF9DCD156FA81B9728D2865 /* OneTapeCleanPlatesBaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6494DDBFF3DE8776E8E3D48A /* OneTapeCleanPlatesBaker.swift */; };
+		523EA39B2810FF589E3B76AF /* OneTapeCraftedTextureBakers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95ABBA9D8E0ADA04572479D2 /* OneTapeCraftedTextureBakers.swift */; };
+		0F075B841A4382748C096533 /* OneTapeBodyShaderSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5E715F0DE555D0DE33A9FB /* OneTapeBodyShaderSource.swift */; };
+		F397AF8A5190BCF0C8947F57 /* OneTapeBodyMoldOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3647E8754AF8921C6E864739 /* OneTapeBodyMoldOverlay.swift */; };
 		14E78AC3CADBB7FF492AA982 /* OneTapeSupportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387E775BAA887FEA5E897389 /* OneTapeSupportStore.swift */; };
 		155FB4BE93A14C21A4ED5A3E /* OneTapeSupportUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F75B0F4DDE5F46C25BA086E /* OneTapeSupportUITests.swift */; };
 		157E277D4A174C5B50F6F395 /* OneTapeArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47367283FAE8ED25101788E /* OneTapeArtworkStore.swift */; };
@@ -357,6 +369,7 @@
 		C93A24715396458E6589403E /* OrbitHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2571683D3289EE722835645 /* OrbitHomeView.swift */; };
 		C949D69ACBD15652A222814F /* CoverImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D104975F7AE93F97A30A7596 /* CoverImportTests.swift */; };
 		C9A327BE9810EC494F54FE33 /* OneTapeCrystalMetalCassette.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF68B973A2C3D81FC16DCBA /* OneTapeCrystalMetalCassette.swift */; };
+		C9A327BF9810EC494F54FE34 /* OneTapeMetalReelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF68B983A2C3D81FC16DCBB /* OneTapeMetalReelView.swift */; };
 		CA375CE9FE17170A774856A7 /* OneTapeHoloFoilOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB920E1315BD99B3588F92FD /* OneTapeHoloFoilOverlay.swift */; };
 		CA8C660E8A1E21D0F396CCA9 /* CormorantGaramond-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CE8D34E07BD50389F38CBA86 /* CormorantGaramond-MediumItalic.ttf */; };
 		CB7EEE088F07CB895B5F68A3 /* SystemMediaSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB824D400CEB6D05EBB9E256 /* SystemMediaSession.swift */; };
@@ -454,6 +467,15 @@
 		FD2E3D92CECC3DA745EF0954 /* approved-screen-font-sources.json in Resources */ = {isa = PBXBuildFile; fileRef = 3D39C814C709055DA4B2C29D /* approved-screen-font-sources.json */; };
 		FD358A28F77B613C216FD0AD /* OneTapePlaybackReadout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F7B151477129C56FAAE4B1 /* OneTapePlaybackReadout.swift */; };
 		FD35F834CCF72C17F3277018 /* OneTapeEditorialScreenFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E4F107C20EDEDCACFE77A8 /* OneTapeEditorialScreenFrame.swift */; };
+		36168BBAA9F96E93577614D4 /* ListeningLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C40FF2946F67EC5CFB24E92 /* ListeningLedger.swift */; };
+		A84819EF2E7275E50A65B855 /* ListeningSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C10EECDA55D5DC5B7BCFB94 /* ListeningSessionTracker.swift */; };
+		5281334BF0E11D6E6E2AAFDE /* ListeningLedgerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17254E99B617F182FF55D2FD /* ListeningLedgerStore.swift */; };
+		2F652A9CB16888791B9978B4 /* PlayerStore+ListeningLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CEE95523F46AA5D43DFC24B /* PlayerStore+ListeningLedger.swift */; };
+		FB0A8E2DF2C19F84DE2C4FF3 /* OneTapeInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C87CADAB56C36209ECF3C0 /* OneTapeInsightsView.swift */; };
+		C16C34542AFBF97F3CDBAFF5 /* OneTapeInsightsLCDHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBBBBAC992C790547C5D607D /* OneTapeInsightsLCDHero.swift */; };
+		91EEE8543192809689D2D526 /* OneTapeInsightsRhythmCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CA2A87BF24EAFBD969CFA6B /* OneTapeInsightsRhythmCard.swift */; };
+		377DC3B22565E3532476E20F /* OneTapeInsightsRankingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A190C708D76A7E71DD518C /* OneTapeInsightsRankingsCard.swift */; };
+		7D00300EFD87AF54816F0516 /* ListeningLedgerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373DAC52EF60CEB844338CF8 /* ListeningLedgerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -770,6 +792,18 @@
 		A8E3967AAE5B23B3E7D2791C /* CraftedVisibleControlSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CraftedVisibleControlSupport.swift; sourceTree = "<group>"; };
 		A9E062EE340DD0A6B2DD7C40 /* TurntableChromeStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TurntableChromeStateTests.swift; sourceTree = "<group>"; };
 		AAAF9580D9E6EC8B2FCE1315 /* OneTapeTactileBodyRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeTactileBodyRenderer.swift; sourceTree = "<group>"; };
+		CDF63451C30958C2E7046ED8 /* OneTapeBodyMetalEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBodyMetalEngine.swift; sourceTree = "<group>"; };
+		6126FF904CD7AFED8A3D9949 /* OneTapeScreenShaderSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenShaderSource.swift; sourceTree = "<group>"; };
+		49D28D753C8571217C41A734 /* OneTapeScreenMetalEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenMetalEngine.swift; sourceTree = "<group>"; };
+		E0E38FB087774BB2BD38A368 /* OneTapeScreenFieldSimulations.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenFieldSimulations.swift; sourceTree = "<group>"; };
+		2BEB968277EE43DD92641A8D /* OneTapeNameSandSimulation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeNameSandSimulation.swift; sourceTree = "<group>"; };
+		2BA11881785B4A13896FAF20 /* OneTapeScreenSimulations.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenSimulations.swift; sourceTree = "<group>"; };
+		1FAA814E01C8957EDF044808 /* OneTapeSeeThroughPrimitives.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeSeeThroughPrimitives.swift; sourceTree = "<group>"; };
+		B45122D99823063F09F6E72B /* OneTapeSeeThroughBaker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeSeeThroughBaker.swift; sourceTree = "<group>"; };
+		6494DDBFF3DE8776E8E3D48A /* OneTapeCleanPlatesBaker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCleanPlatesBaker.swift; sourceTree = "<group>"; };
+		95ABBA9D8E0ADA04572479D2 /* OneTapeCraftedTextureBakers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCraftedTextureBakers.swift; sourceTree = "<group>"; };
+		9E5E715F0DE555D0DE33A9FB /* OneTapeBodyShaderSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBodyShaderSource.swift; sourceTree = "<group>"; };
+		3647E8754AF8921C6E864739 /* OneTapeBodyMoldOverlay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBodyMoldOverlay.swift; sourceTree = "<group>"; };
 		AAF7E61BF4661F6C39E3470F /* OrbitPresentationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OrbitPresentationTests.swift; sourceTree = "<group>"; };
 		AB3E187A0A72556486B320FA /* OneTapeBodyCustomization.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeBodyCustomization.swift; sourceTree = "<group>"; };
 		AB5D12B7BFFE8C5AA874FA43 /* OneTapeScreenAwakeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeScreenAwakeService.swift; sourceTree = "<group>"; };
@@ -840,6 +874,7 @@
 		CB920E1315BD99B3588F92FD /* OneTapeHoloFoilOverlay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeHoloFoilOverlay.swift; sourceTree = "<group>"; };
 		CB9AB4CBAEDB7682F2325D30 /* MechanicalMotionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MechanicalMotionTests.swift; sourceTree = "<group>"; };
 		CBF68B973A2C3D81FC16DCBA /* OneTapeCrystalMetalCassette.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeCrystalMetalCassette.swift; sourceTree = "<group>"; };
+		CBF68B983A2C3D81FC16DCBB /* OneTapeMetalReelView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeMetalReelView.swift; sourceTree = "<group>"; };
 		CC92956C5BA65C0D47483FF1 /* RecordOpeningUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordOpeningUITests.swift; sourceTree = "<group>"; };
 		CDD5D6E2613E22733447EB38 /* OneTapeRoot.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeRoot.swift; sourceTree = "<group>"; };
 		CE2FBCE214BA3E8C89B50FEA /* OrbitSmokeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OrbitSmokeUITests.swift; sourceTree = "<group>"; };
@@ -923,6 +958,15 @@
 		FF0045E736F03B385F52544A /* OneTapeSupportScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeSupportScreen.swift; sourceTree = "<group>"; };
 		FF11C63AC539D88BB3425C53 /* OneTapeWaterfallScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeWaterfallScreen.swift; sourceTree = "<group>"; };
 		FF9AAC03013B178F66FD88B4 /* RoomOrientationAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoomOrientationAdapter.swift; sourceTree = "<group>"; };
+		7C40FF2946F67EC5CFB24E92 /* ListeningLedger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListeningLedger.swift; sourceTree = "<group>"; };
+		8C10EECDA55D5DC5B7BCFB94 /* ListeningSessionTracker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListeningSessionTracker.swift; sourceTree = "<group>"; };
+		17254E99B617F182FF55D2FD /* ListeningLedgerStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListeningLedgerStore.swift; sourceTree = "<group>"; };
+		3CEE95523F46AA5D43DFC24B /* PlayerStore+ListeningLedger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PlayerStore+ListeningLedger.swift"; sourceTree = "<group>"; };
+		60C87CADAB56C36209ECF3C0 /* OneTapeInsightsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeInsightsView.swift; sourceTree = "<group>"; };
+		FBBBBAC992C790547C5D607D /* OneTapeInsightsLCDHero.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeInsightsLCDHero.swift; sourceTree = "<group>"; };
+		4CA2A87BF24EAFBD969CFA6B /* OneTapeInsightsRhythmCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeInsightsRhythmCard.swift; sourceTree = "<group>"; };
+		57A190C708D76A7E71DD518C /* OneTapeInsightsRankingsCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneTapeInsightsRankingsCard.swift; sourceTree = "<group>"; };
+		373DAC52EF60CEB844338CF8 /* ListeningLedgerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListeningLedgerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1087,6 +1131,7 @@
 				2431A2772A2E76B3C6609888 /* OneTapeBronzeCassette.swift */,
 				A2399854018E8CB1073CD3F2 /* OneTapeCassetteArtwork.swift */,
 				CBF68B973A2C3D81FC16DCBA /* OneTapeCrystalMetalCassette.swift */,
+				CBF68B983A2C3D81FC16DCBB /* OneTapeMetalReelView.swift */,
 				4E78A9D00419E3DAD571910A /* OneTapeDisplay.swift */,
 				4823A2E7E7720B88928C3ED2 /* OneTapeDoodleArtwork.swift */,
 				62E4F107C20EDEDCACFE77A8 /* OneTapeEditorialScreenFrame.swift */,
@@ -1124,6 +1169,18 @@
 				1ABA8D22F1A0893720D8F718 /* OneTapeTrackListPrint.swift */,
 				878243E098FC69A8FEDA37BC /* OneTapeFoilAndOpticBodyRenderer.swift */,
 				AAAF9580D9E6EC8B2FCE1315 /* OneTapeTactileBodyRenderer.swift */,
+				CDF63451C30958C2E7046ED8 /* OneTapeBodyMetalEngine.swift */,
+				6126FF904CD7AFED8A3D9949 /* OneTapeScreenShaderSource.swift */,
+				49D28D753C8571217C41A734 /* OneTapeScreenMetalEngine.swift */,
+				E0E38FB087774BB2BD38A368 /* OneTapeScreenFieldSimulations.swift */,
+				2BEB968277EE43DD92641A8D /* OneTapeNameSandSimulation.swift */,
+				2BA11881785B4A13896FAF20 /* OneTapeScreenSimulations.swift */,
+				1FAA814E01C8957EDF044808 /* OneTapeSeeThroughPrimitives.swift */,
+				B45122D99823063F09F6E72B /* OneTapeSeeThroughBaker.swift */,
+				6494DDBFF3DE8776E8E3D48A /* OneTapeCleanPlatesBaker.swift */,
+				95ABBA9D8E0ADA04572479D2 /* OneTapeCraftedTextureBakers.swift */,
+				9E5E715F0DE555D0DE33A9FB /* OneTapeBodyShaderSource.swift */,
+				3647E8754AF8921C6E864739 /* OneTapeBodyMoldOverlay.swift */,
 			);
 			name = Player;
 			path = Player;
@@ -1256,6 +1313,7 @@
 				1CDADD662857ED342E022370 /* TrackChangeMotionTests.swift */,
 				A9E062EE340DD0A6B2DD7C40 /* TurntableChromeStateTests.swift */,
 				4F601AD5A214FD2C91A5C2E5 /* TurntableJourneyTests.swift */,
+				373DAC52EF60CEB844338CF8 /* ListeningLedgerTests.swift */,
 			);
 			name = StillroomTests;
 			path = StillroomTests;
@@ -1345,6 +1403,7 @@
 				E331CDCCDC6BB3AC3B9BF040 /* OneTapeSymbols.swift */,
 				52933FB4CBDA68B5632FF5F3 /* Panels */,
 				779DAF2156A7467C6C8C64B9 /* Player */,
+				C2508F6B2671D7ABD6D53E99 /* Insights */,
 			);
 			name = OneTape;
 			path = OneTape;
@@ -1473,6 +1532,7 @@
 				6259FC0CA87C1AEA7B684AD4 /* StoreKitOneTapePurchaseService.swift */,
 				BB824D400CEB6D05EBB9E256 /* SystemMediaSession.swift */,
 				13ED7525C06286CB7402FD6D /* OneTapeTiltMonitor.swift */,
+				17254E99B617F182FF55D2FD /* ListeningLedgerStore.swift */,
 			);
 			name = Services;
 			path = Services;
@@ -1563,6 +1623,7 @@
 				A8A53440B1CB09FE335A8161 /* PlayerStore+OneTapeTransport.swift */,
 				5B60A4A706AE81DFF69BC48B /* PlayerStore.swift */,
 				A1250AE785A93030BA4B43EC /* RecordOpeningController.swift */,
+				3CEE95523F46AA5D43DFC24B /* PlayerStore+ListeningLedger.swift */,
 			);
 			name = State;
 			path = State;
@@ -1652,9 +1713,22 @@
 				27E47641AEB29FD20BECD4B2 /* TrackChangeMotion.swift */,
 				4834A1B01EF584B5D52F4CFF /* TurntableChromeState.swift */,
 				750D97870D93641B182DF52B /* TurntableJourney.swift */,
+				7C40FF2946F67EC5CFB24E92 /* ListeningLedger.swift */,
+				8C10EECDA55D5DC5B7BCFB94 /* ListeningSessionTracker.swift */,
 			);
 			name = Domain;
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		C2508F6B2671D7ABD6D53E99 /* Insights */ = {
+			isa = PBXGroup;
+			children = (
+				60C87CADAB56C36209ECF3C0 /* OneTapeInsightsView.swift */,
+				FBBBBAC992C790547C5D607D /* OneTapeInsightsLCDHero.swift */,
+				4CA2A87BF24EAFBD969CFA6B /* OneTapeInsightsRhythmCard.swift */,
+				57A190C708D76A7E71DD518C /* OneTapeInsightsRankingsCard.swift */,
+			);
+			path = Insights;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1973,6 +2047,7 @@
 				BF7007F8926DB9D3E3E2A2F3 /* OneTapeBronzeCassette.swift in Sources */,
 				4B201F3C6BBDF58970445D62 /* OneTapeCassetteArtwork.swift in Sources */,
 				C9A327BE9810EC494F54FE33 /* OneTapeCrystalMetalCassette.swift in Sources */,
+				C9A327BF9810EC494F54FE34 /* OneTapeMetalReelView.swift in Sources */,
 				C23E524F6262771A30DCC5A4 /* OneTapeDisplay.swift in Sources */,
 				B83C7856C3DF58C42301B6F6 /* OneTapeDoodleArtwork.swift in Sources */,
 				FD35F834CCF72C17F3277018 /* OneTapeEditorialScreenFrame.swift in Sources */,
@@ -2097,7 +2172,27 @@
 				38ED0F4C062E29CFA37429AC /* OneTapeTrackListPrint.swift in Sources */,
 				445C19FDF481CCC65D2702C2 /* OneTapeFoilAndOpticBodyRenderer.swift in Sources */,
 				14A2B77250F7A3285EEA6FCF /* OneTapeTactileBodyRenderer.swift in Sources */,
+				71E4961089668BA7D7BDC0D6 /* OneTapeBodyMetalEngine.swift in Sources */,
+				065DB6BFC10E1E3E322B4CEE /* OneTapeScreenShaderSource.swift in Sources */,
+				01654552F7A04E469DD0A013 /* OneTapeScreenMetalEngine.swift in Sources */,
+				9A26D48ADE09434DB00C7CE6 /* OneTapeScreenFieldSimulations.swift in Sources */,
+				6EBE8D5D5BAB4ED8BC14F135 /* OneTapeNameSandSimulation.swift in Sources */,
+				1C222866458B45CDBFD2FEA1 /* OneTapeScreenSimulations.swift in Sources */,
+				1F8ED1E77CEA3422F441F334 /* OneTapeSeeThroughPrimitives.swift in Sources */,
+				877654DA729B229A701F4B12 /* OneTapeSeeThroughBaker.swift in Sources */,
+				8FF9DCD156FA81B9728D2865 /* OneTapeCleanPlatesBaker.swift in Sources */,
+				523EA39B2810FF589E3B76AF /* OneTapeCraftedTextureBakers.swift in Sources */,
+				0F075B841A4382748C096533 /* OneTapeBodyShaderSource.swift in Sources */,
+				F397AF8A5190BCF0C8947F57 /* OneTapeBodyMoldOverlay.swift in Sources */,
 				CF8C81AD5513B4F5D489B809 /* OneTapeSurfaceEffectsSection.swift in Sources */,
+				36168BBAA9F96E93577614D4 /* ListeningLedger.swift in Sources */,
+				A84819EF2E7275E50A65B855 /* ListeningSessionTracker.swift in Sources */,
+				5281334BF0E11D6E6E2AAFDE /* ListeningLedgerStore.swift in Sources */,
+				2F652A9CB16888791B9978B4 /* PlayerStore+ListeningLedger.swift in Sources */,
+				FB0A8E2DF2C19F84DE2C4FF3 /* OneTapeInsightsView.swift in Sources */,
+				C16C34542AFBF97F3CDBAFF5 /* OneTapeInsightsLCDHero.swift in Sources */,
+				91EEE8543192809689D2D526 /* OneTapeInsightsRhythmCard.swift in Sources */,
+				377DC3B22565E3532476E20F /* OneTapeInsightsRankingsCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2185,6 +2280,7 @@
 				03D74274E865DA2382EA53A4 /* TrackChangeMotionTests.swift in Sources */,
 				E961DE552F936247049B27AB /* TurntableChromeStateTests.swift in Sources */,
 				6B6C1724E64456A66DF506E0 /* TurntableJourneyTests.swift in Sources */,
+				7D00300EFD87AF54816F0516 /* ListeningLedgerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

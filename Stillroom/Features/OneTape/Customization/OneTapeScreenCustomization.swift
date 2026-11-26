@@ -1,58 +1,66 @@
 import SwiftUI
 
-struct OneTapeScreenCustomization: View {
-    @Binding var appearance: OneTapeAppearance
+/// Pinned live reflective LCD preview header displayed above the scrollable
+/// screen-category picker so every tap updates visibly right above the chips.
+struct OneTapeScreenPreviewHeader: View {
+    let appearance: OneTapeAppearance
     var readout: OneTapePlaybackReadout = .empty
     var visualization: AudioVisualizationSignal? = nil
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            livePreview
-            Text("选择屏幕的材质与动效")
-                .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.55))
-                .frame(maxWidth: .infinity, alignment: .center)
-            sectionTitle("屏幕")
-            OneTapeChipFlow(spacing: 8) {
-                ForEach(OneTapeScreenAvailability.selectableStyles.filter {
-                    $0 != .fox && !extensions.contains($0)
-                }) { style in
-                    screenChip(style)
-                }
-            }
-            Text(appearance.screenStyle.resolvedStyle.customizationDescription)
-                .font(.system(size: 12))
-                .foregroundStyle(.white.opacity(0.4))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.bottom, 16)
-            sectionTitle("扩展")
-            OneTapeChipFlow(spacing: 8) {
-                ForEach(extensions) { style in screenChip(style) }
-            }
-            sectionTitle("角色")
-            OneTapeChipFlow(spacing: 8) {
-                screenChip(.fox)
-            }
-        }
+    private var lcdMaterial: OneTapeLCDMaterial {
+        OneTapeLCDMaterial(appearance: appearance)
     }
 
-    private var extensions: [OneTapeAppearance.ScreenStyle] { [.rain, .trails] }
-
-    private var livePreview: some View {
-        OneTapeDisplay(style: appearance.screenStyle, readout: readout,
-                       visualization: visualization)
-            .scaleEffect(0.65)
-            .frame(width: 171.85, height: 107.66)
-            .padding(8)
-            .background(Color(white: 0.035), in: RoundedRectangle(cornerRadius: 9))
+    var body: some View {
+        VStack(spacing: 8) {
+            OneTapeDisplay(
+                style: appearance.screenStyle,
+                readout: readout,
+                visualization: visualization,
+                lcdMaterial: lcdMaterial,
+                isPreview: true
+            )
+            .scaleEffect(0.68)
+            .frame(width: 264.39 * 0.68, height: 165.63 * 0.68)
+            .padding(6)
+            .background(Color(white: 0.055), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 9)
-                    .strokeBorder(.white.opacity(0.13), lineWidth: 0.8)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(.white.opacity(0.14), lineWidth: 0.8)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
+
+            Text(appearance.screenStyle.resolvedStyle.customizationDescription)
+                .font(.system(size: 12))
+                .foregroundStyle(.white.opacity(0.52))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 6)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Unified 5-category screen customization picker aligned with Cassette 1.0.5's
+/// reflective monochrome LCD screen taxonomy.
+struct OneTapeScreenCustomization: View {
+    @Binding var appearance: OneTapeAppearance
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            ForEach(OneTapeScreenCategory.allCases) { category in
+                VStack(alignment: .leading, spacing: 9) {
+                    sectionHeader(category.title, subtitle: category.subtitle)
+                    OneTapeChipFlow(spacing: 8) {
+                        ForEach(category.activeStyles) { style in
+                            screenChip(style)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private func screenChip(_ style: OneTapeAppearance.ScreenStyle) -> some View {
@@ -66,10 +74,16 @@ struct OneTapeScreenCustomization: View {
         .accessibilityIdentifier("customization.screen.\(style.rawValue)")
     }
 
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.6))
-            .accessibilityAddTraits(.isHeader)
+    private func sectionHeader(_ title: String, subtitle: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.76))
+                .accessibilityAddTraits(.isHeader)
+            Text(subtitle)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(.white.opacity(0.42))
+                .lineLimit(1)
+        }
     }
 }

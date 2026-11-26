@@ -103,10 +103,21 @@ struct OneTapeRoot: View {
                 }
 
                 if !opening.isVisible, store.presentation.destination == .insights {
-                    // Only the destination and its menu interaction are in scope;
-                    // insight content will be designed separately.
-                    Color(white: 0.035).ignoresSafeArea(.container)
-                        .accessibilityHidden(true)
+                    OneTapeInsightsView(
+                        ledger: music.player.listeningLedger,
+                        liveEvent: music.player.liveListeningEvent,
+                        appearance: store.appearance,
+                        albums: music.albums,
+                        tracks: music.player.libraryTracks,
+                        artworks: music.artworks,
+                        favorites: music.player.favorites,
+                        isPlaying: music.player.isPlaying,
+                        isActive: store.presentation.destination == .insights,
+                        onLoadArtwork: { collection in Task { await music.loadArtwork(for: collection) } },
+                        onPlayAlbum: playInsightAlbum,
+                        onPlayTrack: playInsightTrack
+                    )
+                    .transition(.opacity)
                 }
 
                 if !opening.isVisible, store.presentation.customizationVisible {
@@ -234,11 +245,17 @@ struct OneTapeRoot: View {
                 store.suspend()
                 orientation.stop()
                 music.player.cancelWinding()
+                music.player.flushListeningLedger()
             }
             syncTiltMonitor()
         }
         .onAppear {
-            if opening.isVisible { store.navigate(to: .player) }
+            let args = ProcessInfo.processInfo.arguments
+            if opening.isVisible {
+                store.navigate(to: .player)
+            } else if args.contains("--one-tape-appearance-fixture"), args.contains("--open-insights-fixture") {
+                store.navigate(to: .insights)
+            }
             bodyArtworkColor = OneTapeArtworkColorSampler.color(from: currentArtwork)
             music.setTransportFeedbackActive(scenePhase == .active)
             store.activate(); orientation.start()
@@ -247,6 +264,7 @@ struct OneTapeRoot: View {
         .onDisappear {
             opening.suspend()
             music.setTransportFeedbackActive(false)
+            music.player.flushListeningLedger()
             store.suspend(); orientation.stop(); music.cancel()
             tiltMonitor.stop()
         }
@@ -281,6 +299,7 @@ struct OneTapeRoot: View {
         OneTapeNavigation(
             destination: store.presentation.destination,
             customizationVisible: store.presentation.customizationVisible,
+            tapeStyle: store.appearance.tapeStyle,
             readout: readout,
             hasPlayedCurrentTrack: music.player.recentlyPlayedTrackIDs.contains(
                 music.player.currentTrack?.id ?? ""),
@@ -499,6 +518,37 @@ struct OneTapeRoot: View {
         artworkStore.deleteArtwork(id: artwork.id)
         if store.appearance.customArtworkID == artwork.id {
             store.appearance.clearCustomArtworkSelection()
+        }
+    }
+
+    private func playInsightAlbum(_ albumKey: String) {
+        let tracksByID = Dictionary(music.player.libraryTracks.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        if let collection = music.albums.first(where: { album in
+            if let firstID = album.trackIDs.first, let track = tracksByID[firstID], track.albumKey == albumKey {
+                return true
+            }
+            return (album.title + "\u{001F}" + album.subtitle) == albumKey
+        }) {
+            music.selectTrack(in: collection, startAt: collection.trackIDs.first, shuffle: false)
+            withAnimation(menuAnimation) { store.navigate(to: .player) }
+            return
+        }
+        let matching = music.player.libraryTracks.filter { $0.albumKey == albumKey }
+        if let first = matching.first {
+            music.player.choose(first, in: matching, autoplay: true)
+            withAnimation(menuAnimation) { store.navigate(to: .player) }
+        }
+    }
+
+    private func playInsightTrack(_ trackID: String) {
+        if let collection = music.albums.first(where: { $0.trackIDs.contains(trackID) }) {
+            music.selectTrack(in: collection, startAt: trackID, shuffle: false)
+            withAnimation(menuAnimation) { store.navigate(to: .player) }
+            return
+        }
+        if let track = music.player.libraryTracks.first(where: { $0.id == trackID }) {
+            music.player.choose(track, in: music.player.libraryTracks, autoplay: true)
+            withAnimation(menuAnimation) { store.navigate(to: .player) }
         }
     }
 }

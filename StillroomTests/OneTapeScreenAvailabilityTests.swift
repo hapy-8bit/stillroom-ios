@@ -5,12 +5,12 @@ import XCTest
 /// disposable defaults only; no normal appearance or music data is cleared.
 final class OneTapeScreenAvailabilityTests: XCTestCase {
     private let unavailable: [OneTapeAppearance.ScreenStyle] = [
-        .dunes, .iron, .ink, .water, .sand, .oscilloscope, .waterfall
+        .meters, .ink, .smoke, .growth, .harmonograph, .waterfall, .cover, .rain, .trails
     ]
 
     func testSelectableRingContainsOnlyApprovedArtAndRetainedLCDAndFox() {
         XCTAssertEqual(OneTapeScreenAvailability.selectableStyles.map(\.rawValue),
-            ["lcd", "fluid", "rain", "trails", "name", "meters", "fox"])
+            ["lcd", "oscilloscope", "fluid", "water", "sand", "dunes", "iron", "name", "fox"])
         let styles = OneTapeScreenAvailability.selectableStyles
         XCTAssertEqual(Set(styles.map(\.rawValue)).count, styles.count)
         var current = OneTapeAppearance.ScreenStyle.lcd
@@ -30,7 +30,8 @@ final class OneTapeScreenAvailabilityTests: XCTestCase {
 
     func testEveryLegacyRawIdentityStillRoundTripsWithoutBeingMigrated() throws {
         let expected = ["lcd", "fluid", "oscilloscope", "sand", "dunes", "meters", "water",
-                        "iron", "name", "fox", "ink", "rain", "trails", "waterfall"]
+                        "iron", "name", "fox", "ink", "smoke", "growth", "harmonograph",
+                        "cover", "waterfall", "rain", "trails"]
         XCTAssertEqual(OneTapeAppearance.ScreenStyle.allCases.map(\.rawValue), expected)
         for value in expected {
             let encoded = Data(("\"" + value + "\"").utf8)
@@ -47,7 +48,7 @@ final class OneTapeScreenAvailabilityTests: XCTestCase {
             for oldStyle in unavailable {
                 var original = OneTapeAppearance()
                 original.tapeStyle = .bronze
-                original.doodleStyle = .wild
+                original.doodleStyle = .lighthouse
                 original.bodyStyle = .graphite
                 original.bodyColor = .cognac
                 original.glassOpen = false
@@ -63,7 +64,7 @@ final class OneTapeScreenAvailabilityTests: XCTestCase {
                 var saved = try preferences.load()
                 XCTAssertEqual(saved.screenStyle, oldStyle)
                 XCTAssertEqual(saved.tapeStyle, .bronze)
-                XCTAssertEqual(saved.doodleStyle, .wild)
+                XCTAssertEqual(saved.doodleStyle, .lighthouse)
                 XCTAssertEqual(saved.bodyStyle, .graphite)
                 XCTAssertEqual(saved.bodyColor, .cognac)
                 XCTAssertTrue(saved.glassOpen)

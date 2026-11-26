@@ -57,7 +57,7 @@ enum OneTapeSupportDocument: String, CaseIterable, Identifiable, Sendable {
             .init(id: "device", title: "音频、方向与系统功能", body:
                 "动态屏幕在设备上分析当前播放引擎的音频信号，不请求麦克风或录制环境声音。方向感知用于调整播放器内部显示。播放标题、艺人、封面、时长及进度可交给 iOS 系统媒体控制，用于锁屏和控制中心显示。当前版本没有接入广告、跨应用跟踪或第三方行为分析服务。"),
             .init(id: "purchases", title: "App Store 购买与恢复", body:
-                "One Vinyl Pro 的商品、价格、付款及恢复购买由 Apple App Store 和 StoreKit 处理。应用读取并验证 Apple 返回的交易和有效购买状态，用于显示 Pro 状态并响应退款或撤销；不会把本地预览设置当作订单。应用不向开发者服务器上传交易信息，也不读取您的支付密码、银行卡或完整付款资料。付款账户与账单由 Apple 按其规则处理。"),
+                "One Cassette Pro 的商品、价格、付款及恢复购买由 Apple App Store 和 StoreKit 处理。应用读取并验证 Apple 返回的交易和有效购买状态，用于显示 Pro 状态并响应退款或撤销；不会把本地预览设置当作订单。应用不向开发者服务器上传交易信息，也不读取您的支付密码、银行卡或完整付款资料。付款账户与账单由 Apple 按其规则处理。"),
             .init(id: "retention", title: "保留、断开与本机管理", body:
                 "本地曲库、封面、歌词及偏好会留在应用存储供以后使用；导入临时文件按事务清理，缓存可能由系统回收。您可在音乐来源中断开 Navidrome，移除此设备上的连接和远端目录并尝试清理凭据，服务器音乐与本地音乐保留；凭据删除暂时失败时会在后续启动重试。断开不表示所有封面缓存已立即清空。如需管理或移除本机应用数据，请通过 iOS 系统设置操作并先保留所需原件；系统备份和钥匙串有各自的保留机制。"),
             .init(id: "feedback", title: "您主动发出的反馈", body:
@@ -88,9 +88,9 @@ enum OneTapeSupportDocument: String, CaseIterable, Identifiable, Sendable {
     private func paymentSections(contactEmail: String?) -> [OneTapeSupportSection] {
         [
             .init(id: "current", title: "当前版本", body:
-                "本地音乐、Navidrome 播放及浏览外观不会自动发起付款。Studio 付费弹窗提供 One Vinyl Pro 购买，只有主动点击购买并在 App Store 系统页面确认后才会完成交易。本轮现有功能的使用方式保持不变；Pro 状态不代表承诺所有未来功能。"),
+                "本地音乐、Navidrome 播放及浏览外观不会自动发起付款。Studio 付费弹窗提供 One Cassette Pro 购买，只有主动点击购买并在 App Store 系统页面确认后才会完成交易。本轮现有功能的使用方式保持不变；Pro 状态不代表承诺所有未来功能。"),
             .init(id: "pricing", title: "价格与权益", body:
-                OneTapePaymentPlan.summary + "商品标识为 OneVinyl_1。请在确认付款前核对系统页面显示的商品名称、价格和账户。商品暂不可用或订单未验证时，应用不会显示为购买成功。"),
+                OneTapePaymentPlan.summary + "请在确认付款前核对系统页面显示的商品名称、价格和账户。商品暂不可用或订单未验证时，应用不会显示为购买成功。"),
             .init(id: "restore", title: "恢复与订单", body:
                 "已购买用户可在设置中点击“恢复购买”，使用购买时的 App Store 账户同步并验证有效订单。没有找到有效订单会明确提示；取消、待批准或验证失败不会当作恢复成功。启动和返回应用时会检查当前有效购买，退款或撤销后会相应更新 Pro 状态。应用不请求支付密码或银行卡信息，系统认证由 Apple 处理。"),
             .init(id: "third-party", title: "第三方费用", body:

@@ -18,7 +18,7 @@ struct OneTapeLCDMaterial: Equatable, Sendable {
         }
         switch appearance.bodyStyle {
         case .black: background = Self.original.background
-        case .graphite: background = RGB(0.83, 0.84, 0.85)
+        case .graphite: background = RGB(0.89, 0.90, 0.91)
         case .adaptive:
             let finish = OneTapeTransportMaterial(appearance: appearance, artworkColor: artworkColor)
             background = finish.face.mixed(with: RGB(0.86, 0.90, 0.88), fraction: 0.58)

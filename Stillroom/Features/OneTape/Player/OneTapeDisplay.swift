@@ -1,46 +1,97 @@
 import SwiftUI
 
-/// Available designs share the same live metadata. Legacy stored choices resolve
-/// at this boundary without rewriting the user's saved appearance record.
+/// Unified reflective monochrome LCD display router.
+/// Every screen shares the same body-coordinated pale reflective LCD substrate
+/// (`OneTapeLCDMaterial`), recessed glass shading, and smooth 90° orientation turn.
+/// Only `.lcd` renders full track metadata; visual & character modes occupy the
+/// full panel cleanly without overlapping typography.
 struct OneTapeDisplay: View {
     let style: OneTapeAppearance.ScreenStyle
     var readout: OneTapePlaybackReadout = .empty
     var visualization: AudioVisualizationSignal? = nil
     var quarterTurns: Int = 0
     var lcdMaterial: OneTapeLCDMaterial = .original
+    var isPreview: Bool = false
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+
     private var resolvedStyle: OneTapeAppearance.ScreenStyle { style.resolvedStyle }
+    private var shouldAnimate: Bool { !reduceMotion && scenePhase == .active }
 
     var body: some View {
-        Group {
-            if resolvedStyle == .lcd {
-                OneTapeEmptyLCD(readout: readout, quarterTurns: quarterTurns, material: lcdMaterial)
-            } else if resolvedStyle == .fox {
-                OneTapeScreenFrame(style: .fox, readout: readout) {
-                    OneTapeAnimatedScreen(style: .fox, readout: readout, response: .silent)
-                }
-            } else {
-                OneTapeApprovedDisplay(style: resolvedStyle, readout: readout,
-                                       visualization: visualization)
+        ZStack {
+            surfaceColor
+            screenContent
+            if resolvedStyle == .lcd || resolvedStyle == .fox {
+                OneTapeLCDGlassOverlay()
             }
         }
         .modifier(OneTapeScreenTurn(
             angle: Double(quarterTurns) * 90,
             tallFraction: abs(quarterTurns % 2) == 1 ? 1 : 0))
         .frame(width: 264.39, height: 165.63)
-        .background(surface)
+        .background(surfaceColor)
         .clipShape(RoundedRectangle(cornerRadius: 2.5))
         .accessibilityHidden(true)
         .animation(reduceMotion || scenePhase != .active ? nil
             : .timingCurve(0.25, 0.1, 0.25, 1, duration: 0.32), value: quarterTurns)
     }
 
-    private var surface: Color {
-        resolvedStyle == .lcd
-            ? Color(red: lcdMaterial.background.red, green: lcdMaterial.background.green,
-                    blue: lcdMaterial.background.blue)
-            : Color(white: 0.035)
+    @ViewBuilder
+    private var screenContent: some View {
+        if resolvedStyle == .lcd {
+            OneTapeEmptyLCD(readout: readout, quarterTurns: quarterTurns, material: lcdMaterial)
+        } else if resolvedStyle == .fox {
+            OneTapeFoxScreen(readout: readout, material: lcdMaterial)
+        } else if let program = OneTapeScreenShaderProgram(style: resolvedStyle) {
+            OneTapeMetalScreenView(
+                program: program,
+                lcdMaterial: lcdMaterial,
+                readout: readout,
+                visualization: visualization,
+                isPreview: isPreview,
+                shouldAnimate: shouldAnimate
+            )
+        } else {
+            OneTapeEmptyLCD(readout: readout, quarterTurns: quarterTurns, material: lcdMaterial)
+        }
+    }
+
+    private var surfaceColor: Color {
+        Color(red: lcdMaterial.background.red,
+              green: lcdMaterial.background.green,
+              blue: lcdMaterial.background.blue)
+    }
+}
+
+/// Subtle physical recessed LCD glass shading shared across SwiftUI-drawn screens
+/// (`Readout` & `Fox`) to match the Metal shaders' `finalizeLCD` border optics.
+private struct OneTapeLCDGlassOverlay: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0.065), location: 0.0),
+                    .init(color: .clear, location: 0.08),
+                    .init(color: .clear, location: 0.94),
+                    .init(color: .white.opacity(0.045), location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0.05), location: 0.0),
+                    .init(color: .clear, location: 0.05),
+                    .init(color: .clear, location: 1.0)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -67,69 +118,45 @@ struct OneTapeScreenTurn: AnimatableModifier {
     }
 }
 
-private struct OneTapeAnimatedScreen: View {
-    let style: OneTapeAppearance.ScreenStyle
+/// Full-bleed monochrome reflective LCD character screen for the headphones fox.
+/// Grooves while playing, nods idly when paused, and dozes off after 10 seconds paused.
+private struct OneTapeFoxScreen: View {
     let readout: OneTapePlaybackReadout
-    let response: OneTapeScreenResponse
+    let material: OneTapeLCDMaterial
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @State private var resumedAt = Date()
     @State private var elapsedBeforeResume = 0.0
 
-    // A paused material holds its visual phase. The fox keeps its quiet idle /
-    // sleep states. Neither behavior advances media seconds or invents PCM.
-    private var animates: Bool {
-        !reduceMotion && scenePhase == .active && (readout.isPlaying || style == .fox)
-    }
-
-    private var usesAmbientClock: Bool {
-        switch style {
-        case .fox, .fluid, .water, .dunes, .iron, .ink, .rain, .trails: true
-        default: false
-        }
-    }
+    private var animates: Bool { !reduceMotion && scenePhase == .active }
 
     var body: some View {
-        ZStack {
-            Color(red: 218 / 255, green: 223 / 255, blue: 224 / 255)
-            if usesAmbientClock {
-                TimelineView(.animation(minimumInterval: 1 / 20, paused: !animates)) { timeline in
-                    // Ambient art has its own clock. Scope, meters and the
-                    // waterfall never synthesize sound from this phase.
-                    let phase = reduceMotion ? 0 : elapsedBeforeResume
-                        + (animates ? max(0, timeline.date.timeIntervalSince(resumedAt)) : 0)
-                    if style == .fox {
-                        OneTapeFoxDisplay(readout: readout, phase: phase, reducedMotion: reduceMotion)
-                    } else {
-                        OneTapeScreenCanvas(style: style, response: response, phase: phase)
-                    }
-                }
-            } else if style == .name {
-                OneTapeNameSand(readout: readout, response: response)
-            } else {
-                OneTapeScreenCanvas(style: style, response: response)
-            }
+        TimelineView(.animation(minimumInterval: 1 / 20, paused: !animates)) { timeline in
+            let phase = reduceMotion ? 0 : elapsedBeforeResume
+                + (animates ? max(0, timeline.date.timeIntervalSince(resumedAt)) : 0)
+            OneTapeFoxDisplay(readout: readout, phase: phase, reducedMotion: reduceMotion)
+                .scaleEffect(1.14)
         }
+        .clipped()
+        .background(
+            Color(red: material.background.red,
+                  green: material.background.green,
+                  blue: material.background.blue)
+        )
         .onChange(of: animates) { oldValue, newValue in
             if oldValue { elapsedBeforeResume += max(0, Date().timeIntervalSince(resumedAt)) }
             if newValue { resumedAt = Date() }
         }
-        .onChange(of: style) { _, _ in resetVisualClock() }
         .onChange(of: readout.isPlaying) { _, _ in
-            // The character starts a fresh idle interval on pause; materials
-            // instead retain their phase so their surfaces do not jump.
-            if style == .fox { resetVisualClock() }
+            // Fresh idle countdown on pause so dozing starts cleanly after 10 seconds.
+            elapsedBeforeResume = 0
+            resumedAt = Date()
         }
-    }
-
-    private func resetVisualClock() {
-        elapsedBeforeResume = 0
-        resumedAt = Date()
     }
 }
 
-/// Actual offline Rive path geometry, rewritten as self-contained vector frames.
-/// Playback chooses the native state; original beat accents/mixing are not claimed.
+/// Self-contained vector fox frames mapped onto the reflective LCD glass.
 private struct OneTapeFoxDisplay: View {
     let readout: OneTapePlaybackReadout
     let phase: Double

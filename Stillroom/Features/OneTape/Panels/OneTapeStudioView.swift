@@ -24,7 +24,7 @@ struct OneTapeStudioView: View {
                 ScrollView {
                     VStack(spacing: 18) {
                         Color.clear.frame(height: min(geometry.size.height * 0.39, geometry.size.width * 0.74))
-                        Text("ONE TAPE STUDIO")
+                        Text("ONE CASSETTE STUDIO")
                             .font(.system(size: 11, weight: .bold))
                             .tracking(3.4)
                             .foregroundStyle(orange)

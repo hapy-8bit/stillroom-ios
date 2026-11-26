@@ -187,7 +187,7 @@ final class OneTapePurchaseStoreTests: XCTestCase {
         closingSheet.cancel()
         let reopenedSheet = Task { await store.loadProduct() }
         await Task.yield()
-        release?.resume(returning: .init(id: "OneVinyl_1", displayName: "One Vinyl Pro", displayPrice: "¥9.90"))
+        release?.resume(returning: .init(id: "OneVinyl_1", displayName: "One Cassette Pro", displayPrice: "¥9.90"))
         await closingSheet.value
         await reopenedSheet.value
         XCTAssertNotNil(store.product, "Closing Studio must not silently lose a shared catalog result.")
@@ -248,7 +248,7 @@ private final class PurchaseServiceDouble: OneTapePurchasing {
     func loadProduct() async throws -> OneTapeStoreProduct {
         if let catalogError { throw catalogError }
         if let readProduct { return await readProduct() }
-        return .init(id: "OneVinyl_1", displayName: "One Vinyl Pro", displayPrice: "US$2.49")
+        return .init(id: "OneVinyl_1", displayName: "One Cassette Pro", displayPrice: "US$2.49")
     }
 
     func purchase() async throws -> OneTapePurchaseResult {

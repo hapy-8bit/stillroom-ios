@@ -165,6 +165,110 @@ final class OneTapeReelGearTests: XCTestCase {
             "SilverOval lock ring remained orange instead of neutralizing for custom reelColor: \(lockRingSample)")
     }
 
+    func testMetalReelStyleAndFinishDefaultsLegacyDecodeAndRoundTrip() throws {
+        let baseline = OneTapeAppearance()
+        XCTAssertEqual(baseline.reelStyle, .classic)
+        XCTAssertEqual(baseline.reelFinish, .silver)
+        XCTAssertTrue(OneTapeAppearance.TapeStyle.clear.showsExposedMetalReels)
+        XCTAssertFalse(OneTapeAppearance.TapeStyle.classic.showsExposedMetalReels)
+        XCTAssertFalse(OneTapeAppearance.TapeStyle.bronze.showsExposedMetalReels)
+
+        let fullData = try JSONEncoder().encode(baseline)
+        var rawObject = try XCTUnwrap(JSONSerialization.jsonObject(with: fullData) as? [String: Any])
+        rawObject.removeValue(forKey: "reelStyle")
+        rawObject.removeValue(forKey: "reelFinish")
+        let legacyData = try JSONSerialization.data(withJSONObject: rawObject)
+        let decoded = try JSONDecoder().decode(OneTapeAppearance.self, from: legacyData)
+        XCTAssertEqual(decoded.reelStyle, .classic)
+        XCTAssertEqual(decoded.reelFinish, .silver)
+
+        let suite = "OneTapeMetalReelTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = OneTapeAppearancePreferences(defaults: defaults)
+
+        for style in OneTapeAppearance.ReelStyle.allCases {
+            for finish in OneTapeAppearance.ReelFinish.allCases {
+                var appearance = OneTapeAppearance()
+                appearance.tapeStyle = .clear
+                appearance.reelStyle = style
+                appearance.reelFinish = finish
+                try preferences.save(appearance)
+                let loaded = try preferences.load()
+                XCTAssertEqual(loaded.reelStyle, style)
+                XCTAssertEqual(loaded.reelFinish, finish)
+            }
+        }
+    }
+
+    @MainActor
+    func testClearTapeRendersDistinctMetalReelStylesAndAnodizedFinishes() throws {
+        let flangeBand = CGRect(x: 112, y: 78, width: 184, height: 184)
+
+        var appearance = OneTapeAppearance()
+        appearance.tapeStyle = .clear
+        appearance.reelStyle = .classic
+        appearance.reelFinish = .silver
+        let classicSilver = try render(OneTapeCassetteArtwork(
+            appearance: appearance,
+            supplyAngle: .degrees(0),
+            takeupAngle: .degrees(0),
+            tapeProgress: 0.4
+        ))
+
+        appearance.reelStyle = .rounded
+        let roundedSilver = try render(OneTapeCassetteArtwork(
+            appearance: appearance,
+            supplyAngle: .degrees(0),
+            takeupAngle: .degrees(0),
+            tapeProgress: 0.4
+        ))
+
+        appearance.reelStyle = .solid
+        let solidSilver = try render(OneTapeCassetteArtwork(
+            appearance: appearance,
+            supplyAngle: .degrees(0),
+            takeupAngle: .degrees(0),
+            tapeProgress: 0.4
+        ))
+
+        XCTAssertGreaterThan(try changedPixels(classicSilver, roundedSilver, in: flangeBand), 1500,
+            "Classic and rounded metal reel cutouts should differ visibly")
+        XCTAssertGreaterThan(try changedPixels(classicSilver, solidSilver, in: flangeBand), 1500,
+            "Classic and solid metal reel flanges should differ visibly")
+
+        appearance.reelStyle = .classic
+        appearance.reelFinish = .ruby
+        let classicRuby = try render(OneTapeCassetteArtwork(
+            appearance: appearance,
+            supplyAngle: .degrees(0),
+            takeupAngle: .degrees(0),
+            tapeProgress: 0.4
+        ))
+
+        appearance.reelFinish = .emerald
+        let classicEmerald = try render(OneTapeCassetteArtwork(
+            appearance: appearance,
+            supplyAngle: .degrees(0),
+            takeupAngle: .degrees(0),
+            tapeProgress: 0.4
+        ))
+
+        XCTAssertGreaterThan(try changedPixels(classicSilver, classicRuby, in: flangeBand), 4000,
+            "Ruby anodized reel finish should visibly tint the brushed flange")
+        XCTAssertGreaterThan(try changedPixels(classicRuby, classicEmerald, in: flangeBand), 4000,
+            "Ruby and emerald anodized reel finishes should differ visibly")
+
+        let rotatedEmerald = try render(OneTapeCassetteArtwork(
+            appearance: appearance,
+            supplyAngle: .degrees(24),
+            takeupAngle: .degrees(18),
+            tapeProgress: 0.4
+        ))
+        XCTAssertGreaterThan(try changedPixels(classicEmerald, rotatedEmerald, in: flangeBand), 1000,
+            "Rotating the reel should turn cutout windows and spoke rivets")
+    }
+
     private func meanRGB(_ image: CGImage, at logicalPoint: CGPoint, radius: CGFloat) throws -> (r: UInt8, g: UInt8, b: UInt8, luminance: Int) {
         let scale = CGFloat(image.height) / 576
         let rect = CGRect(

@@ -65,8 +65,7 @@ extension OneTapeCustomizationTab {
     var panelHeightFraction: CGFloat {
         switch self {
         case .tape, .print, .reel: 1
-        case .body: 0.8674
-        case .screen: 0.763
+        case .body, .screen: 0.8674
         }
     }
 }

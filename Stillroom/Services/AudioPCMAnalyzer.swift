@@ -63,11 +63,47 @@ final class AudioPCMAnalyzer {
             bands[index] = min(1, max(0, (decibels + 72) / 72))
         }
         var waveform = [Float](repeating: 0, count: 48)
-        for index in waveform.indices {
-            let source = min(count - 1, index * count / waveform.count)
-            waveform[index] = samples[source].isFinite ? min(1, max(-1, samples[source])) : 0
+        if peak > 0.000_1, count >= waveform.count {
+            // Stabilize the scope window on a strong rising-edge zero-crossing
+            // over ~8.5 ms of contiguous PCM, then box-average into 48 bins so
+            // high frequencies never alias into jagged noise.
+            let desired = sampleRate.isFinite ? Int((sampleRate * 0.0085).rounded()) : 384
+            let windowSamples = min(count, max(waveform.count, min(384, desired)))
+            let maxTrigger = max(1, count - windowSamples)
+            var trigger = 0
+            var bestSlope: Float = -1
+            if maxTrigger > 1 {
+                var prev = Self.cleanSample(samples[0])
+                for index in 1..<maxTrigger {
+                    let cur = Self.cleanSample(samples[index])
+                    if prev <= 0 && cur > 0 {
+                        let slope = cur - prev
+                        if slope > bestSlope {
+                            bestSlope = slope
+                            trigger = index
+                        }
+                    }
+                    prev = cur
+                }
+            }
+            for bin in waveform.indices {
+                let lo = trigger + (bin * windowSamples) / waveform.count
+                let hi = max(lo + 1, min(count, trigger + ((bin + 1) * windowSamples) / waveform.count))
+                var sum: Float = 0
+                for s in lo..<hi { sum += Self.cleanSample(samples[s]) }
+                waveform[bin] = max(-1, min(1, sum / Float(hi - lo)))
+            }
+        } else {
+            for index in waveform.indices {
+                let source = min(count - 1, index * count / waveform.count)
+                waveform[index] = Self.cleanSample(samples[source])
+            }
         }
         return AudioVisualizationFrame(rms: Float(sqrt(energy / Double(count))), peak: peak,
             bands: bands, waveform: waveform, status: .active, sampleRate: sampleRate, sampleCount: count)
+    }
+
+    private static func cleanSample(_ raw: Float) -> Float {
+        raw.isFinite ? min(1, max(-1, raw)) : 0
     }
 }

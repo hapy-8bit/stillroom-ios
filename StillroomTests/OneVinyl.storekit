@@ -7,11 +7,11 @@
       "familyShareable" : false,
       "internalID" : "100001",
       "localizations" : [
-        { "description" : "一次性购买 One Vinyl Pro。", "displayName" : "One Vinyl Pro", "locale" : "zh_CN" },
-        { "description" : "A one-time One Vinyl Pro purchase.", "displayName" : "One Vinyl Pro", "locale" : "en_US" }
+        { "description" : "一次性购买 One Cassette Pro。", "displayName" : "One Cassette Pro", "locale" : "zh_CN" },
+        { "description" : "A one-time One Cassette Pro purchase.", "displayName" : "One Cassette Pro", "locale" : "en_US" }
       ],
       "productID" : "OneVinyl_1",
-      "referenceName" : "One Vinyl Pro",
+      "referenceName" : "One Cassette Pro",
       "type" : "NonConsumable"
     },
     {

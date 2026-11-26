@@ -1,363 +1,300 @@
+import CoreGraphics
+import Metal
 import SwiftUI
 
-/// Renders tactile and graphic Cassette 1.0.5 body finishes in 393×852 logical
-/// design points: Woven Linen, Digital Camo, Stealth Camo, Sticker Bomb,
-/// Grey Tracks, and Clean Plates.
+/// Industrial & tactile GPU-lit body renderers built for the iPhone 393×852 chassis:
+/// - `.greyTracks`: warm-bone matte chassis with sculpted asymmetric slate-grey milled conduit
+/// - `.cleanPlates`: gunmetal anodized CNC modular plates, recessed key bay & micro indicators
+/// - `.camoStealth`: carbon matte charcoal with raised clear-coat stealth camo islands
+/// - `.camoDigital`: cool urban-slate multi-scale digital pixel camouflage
+/// - `.linen`: coarse oatmeal woven flax burlap, perimeter stitching & embroidered patches
+/// - `.stickerBomb`: dark pebbled shell covered in hand-illustrated die-cut retro vinyl decals.
+@MainActor
 enum OneTapeTactileBodyRenderer {
-    static func draw(
-        material: OneTapeBodyMaterial,
-        in context: inout GraphicsContext,
-        palette: OneTapeBodyMaterialPalette,
-        rect: CGRect
-    ) {
+    @ViewBuilder
+    static func view(
+        for material: OneTapeBodyMaterial,
+        tilt: CGSize
+    ) -> some View {
         switch material {
-        case .linen:
-            drawLinen(in: &context, palette: palette, rect: rect)
-        case .camoDigital:
-            drawCamo(in: &context, palette: palette, rect: rect, stealth: false)
         case .camoStealth:
-            drawCamo(in: &context, palette: palette, rect: rect, stealth: true)
-        case .stickerBomb:
-            drawStickerBomb(in: &context, palette: palette, rect: rect)
+            OneTapeMetalBodyView(program: .stealthCamo, tilt: tilt)
+                .frame(width: 393, height: 852)
+        case .camoDigital:
+            OneTapeMetalBodyView(program: .digitalCamo, tilt: tilt)
+                .frame(width: 393, height: 852)
         case .greyTracks:
-            drawGreyTracks(in: &context, palette: palette, rect: rect)
+            let baseTex = greyTracksBaseTexture()
+            OneTapeMetalBodyView(program: .directionalRelief, tilt: tilt, grain: 0.018, texture0: baseTex)
+                .frame(width: 393, height: 852)
         case .cleanPlates:
-            drawCleanPlates(in: &context, palette: palette, rect: rect)
+            let baseTex = OneTapeCleanPlatesBaker.baseTexture()
+            OneTapeMetalBodyView(program: .directionalRelief, tilt: tilt, grain: 0.014, texture0: baseTex)
+                .frame(width: 393, height: 852)
+        case .linen:
+            let baseTex = OneTapeCraftedTextureBakers.linenBaseTexture()
+            OneTapeMetalBodyView(program: .directionalRelief, tilt: tilt, grain: 0.022, texture0: baseTex)
+                .frame(width: 393, height: 852)
+        case .stickerBomb:
+            let baseTex = OneTapeCraftedTextureBakers.stickerBombBaseTexture()
+            OneTapeMetalBodyView(program: .directionalRelief, tilt: tilt, grain: 0.014, texture0: baseTex)
+                .frame(width: 393, height: 852)
         default:
-            break
+            material.palette().shell.materialColor
+                .frame(width: 393, height: 852)
         }
     }
 
-    // MARK: - Woven Linen (亚麻织布)
-
-    private static func drawLinen(
-        in context: inout GraphicsContext,
-        palette: OneTapeBodyMaterialPalette,
-        rect: CGRect
-    ) {
-        let base = palette.shell
-        context.fill(
-            Path(rect),
-            with: .linearGradient(
-                Gradient(colors: [
-                    base.mixed(with: .init(1, 0.98, 0.94), fraction: 0.14).materialColor,
-                    base.materialColor,
-                    base.mixed(with: .init(0.28, 0.23, 0.17), fraction: 0.24).materialColor
-                ]),
-                startPoint: .zero,
-                endPoint: CGPoint(x: rect.width, y: rect.height)
-            )
-        )
-
-        // Fine alternating warp (vertical) and weft (horizontal) flax threads.
-        let warpCount = 155
-        for i in 0..<warpCount {
-            let x = CGFloat(i) * rect.width / CGFloat(warpCount)
-            let n = noise(i * 11 + 5)
-            let light = n > 0.52
-            var line = Path()
-            line.move(to: CGPoint(x: x, y: 0))
-            line.addLine(to: CGPoint(x: x, y: rect.height))
-            context.stroke(
-                line,
-                with: .color((light ? Color.white : Color(red: 0.34, green: 0.28, blue: 0.20))
-                    .opacity(0.05 + n * 0.085)),
-                lineWidth: n > 0.85 ? 1.1 : 0.55
+    static func previewSnapshot(
+        for material: OneTapeBodyMaterial,
+        tilt: CGSize
+    ) -> UIImage? {
+        func makeUniforms(grain: Float = 0.018) -> OneTapeBodyUniforms {
+            OneTapeBodyUniforms(
+                designSize: SIMD2(393, 852),
+                uvOffset: SIMD2(0, 608.0 / 852.0),
+                uvScale: SIMD2(1, 244.0 / 852.0),
+                tilt: SIMD2(Float(tilt.width), Float(tilt.height)),
+                phase: 0,
+                energy: 0,
+                grain: grain
             )
         }
-
-        let weftCount = 310
-        for j in 0..<weftCount {
-            let y = CGFloat(j) * rect.height / CGFloat(weftCount)
-            let n = noise(j * 17 + 101)
-            let light = n > 0.48
-            var line = Path()
-            line.move(to: CGPoint(x: 0, y: y))
-            line.addLine(to: CGPoint(x: rect.width, y: y))
-            context.stroke(
-                line,
-                with: .color((light ? Color(red: 0.98, green: 0.96, blue: 0.90) : Color(red: 0.30, green: 0.24, blue: 0.17))
-                    .opacity(0.045 + n * 0.09)),
-                lineWidth: n > 0.88 ? 1.2 : 0.55
+        let size = CGSize(width: 393 * 2, height: 244 * 2)
+        switch material {
+        case .camoStealth:
+            return OneTapeBodyMetalEngine.shared.cachedSnapshot(
+                key: "preview.camoStealth.v2", program: .stealthCamo, pixelSize: size, uniforms: makeUniforms()
             )
+        case .camoDigital:
+            return OneTapeBodyMetalEngine.shared.cachedSnapshot(
+                key: "preview.camoDigital.v1", program: .digitalCamo, pixelSize: size, uniforms: makeUniforms()
+            )
+        case .greyTracks:
+            return OneTapeBodyMetalEngine.shared.cachedSnapshot(
+                key: "preview.greyTracks.v2",
+                program: .directionalRelief,
+                pixelSize: size,
+                uniforms: makeUniforms(grain: 0.018),
+                texture0: greyTracksBaseTexture()
+            )
+        case .cleanPlates:
+            return OneTapeBodyMetalEngine.shared.cachedSnapshot(
+                key: "preview.cleanPlates.v1",
+                program: .directionalRelief,
+                pixelSize: size,
+                uniforms: makeUniforms(grain: 0.014),
+                texture0: OneTapeCleanPlatesBaker.baseTexture()
+            )
+        case .linen:
+            return OneTapeBodyMetalEngine.shared.cachedSnapshot(
+                key: "preview.linen.v1",
+                program: .directionalRelief,
+                pixelSize: size,
+                uniforms: makeUniforms(grain: 0.022),
+                texture0: OneTapeCraftedTextureBakers.linenBaseTexture()
+            )
+        case .stickerBomb:
+            return OneTapeBodyMetalEngine.shared.cachedSnapshot(
+                key: "preview.stickerBomb.v1",
+                program: .directionalRelief,
+                pixelSize: size,
+                uniforms: makeUniforms(grain: 0.014),
+                texture0: OneTapeCraftedTextureBakers.stickerBombBaseTexture()
+            )
+        default:
+            return nil
         }
-
-        // Subtle perimeter tailored stitch line around the shell silhouette.
-        let stitchRect = rect.insetBy(dx: 7.5, dy: 7.5)
-        context.stroke(
-            Path(roundedRect: stitchRect, cornerRadius: 51.5),
-            with: .color(Color(red: 0.34, green: 0.28, blue: 0.21).opacity(0.28)),
-            style: StrokeStyle(lineWidth: 0.9, dash: [4, 3])
-        )
     }
 
-    // MARK: - Digital & Stealth Camo (数码迷彩 / 暗夜迷彩)
+    // MARK: - Baked Grey Tracks Precision Chassis Texture (393×852 @2x)
 
-    private static func drawCamo(
-        in context: inout GraphicsContext,
-        palette: OneTapeBodyMaterialPalette,
+    static func greyTracksBaseTexture() -> MTLTexture? {
+        OneTapeBodyMetalEngine.shared.cachedTexture(key: "body.greyTracks.base.v2") { ctx, rect in
+            drawWarmBoneChassis(in: ctx, rect: rect)
+            drawMilledGreyTracks(in: ctx)
+            drawColorMarkers(in: ctx)
+            drawChassisScrews(in: ctx)
+        }
+    }
+
+    private static func drawWarmBoneChassis(in ctx: CGContext, rect: CGRect) {
+        let cs = CGColorSpaceCreateDeviceRGB()
+        let colors = [
+            CGColor(colorSpace: cs, components: [0.895, 0.885, 0.850, 1])!,
+            CGColor(colorSpace: cs, components: [0.858, 0.848, 0.812, 1])!,
+            CGColor(colorSpace: cs, components: [0.822, 0.810, 0.775, 1])!
+        ] as CFArray
+        if let grad = CGGradient(colorsSpace: cs, colors: colors, locations: [0, 0.5, 1]) {
+            ctx.drawLinearGradient(grad, start: CGPoint(x: 40, y: 0), end: CGPoint(x: 360, y: 852), options: [])
+        }
+
+        // Subtle recessed molding plate on top bezel only — leave the middle bridge
+        // between cassette pocket and LCD completely clean and uncluttered.
+        let topPanel = CGPath(roundedRect: CGRect(x: 84, y: 8, width: 226, height: 48), cornerWidth: 10, cornerHeight: 10, transform: nil)
+        ctx.setFillColor(red: 1, green: 1, blue: 1, alpha: 0.14)
+        ctx.addPath(topPanel)
+        ctx.fillPath()
+        ctx.setStrokeColor(red: 0, green: 0, blue: 0, alpha: 0.085)
+        ctx.setLineWidth(0.75)
+        ctx.addPath(topPanel)
+        ctx.strokePath()
+    }
+
+    private static func drawMilledGreyTracks(in ctx: CGContext) {
+        ctx.setLineCap(.round)
+        ctx.setLineJoin(.round)
+
+        // Single continuous sculptural slate-grey perimeter track (matching Cassette
+        // 1.0.5's asymmetric outer conduit — never cutting across the middle bridge
+        // or boxing in the LCD).
+        let outerConduit = roundedPolyline([
+            CGPoint(x: 108, y: 53),
+            CGPoint(x: 356, y: 53),
+            CGPoint(x: 382.5, y: 78),
+            CGPoint(x: 382.5, y: 814),
+            CGPoint(x: 362, y: 834),
+            CGPoint(x: 106, y: 834)
+        ], radius: 18)
+
+        // 1. Lower-right bone catch highlight.
+        ctx.saveGState()
+        ctx.translateBy(x: 0.9, y: 1.0)
+        ctx.setStrokeColor(red: 1, green: 1, blue: 1, alpha: 0.68)
+        ctx.setLineWidth(11.4)
+        ctx.addPath(outerConduit)
+        ctx.strokePath()
+        ctx.restoreGState()
+
+        // 2. Recessed outer trench wall shadow.
+        ctx.setStrokeColor(red: 0.24, green: 0.25, blue: 0.26, alpha: 0.56)
+        ctx.setLineWidth(11.2)
+        ctx.addPath(outerConduit)
+        ctx.strokePath()
+
+        // 3. Satin slate-grey recessed track body.
+        ctx.setStrokeColor(red: 0.445, green: 0.460, blue: 0.478, alpha: 1.0)
+        ctx.setLineWidth(9.2)
+        ctx.addPath(outerConduit)
+        ctx.strokePath()
+
+        // 4. Inner shadow groove beside center guide wire.
+        ctx.saveGState()
+        ctx.translateBy(x: -0.45, y: -0.45)
+        ctx.setStrokeColor(red: 0.18, green: 0.19, blue: 0.20, alpha: 0.56)
+        ctx.setLineWidth(1.9)
+        ctx.addPath(outerConduit)
+        ctx.strokePath()
+        ctx.restoreGState()
+
+        // 5. Crisp pale-silver raised centerline guide wire.
+        ctx.setStrokeColor(red: 0.84, green: 0.85, blue: 0.84, alpha: 0.84)
+        ctx.setLineWidth(1.05)
+        ctx.addPath(outerConduit)
+        ctx.strokePath()
+    }
+
+    private static func drawColorMarkers(in ctx: CGContext) {
+        // Restrained Teenage Engineering / Braun color-coded recessed micro-indicators.
+        drawRecessedMarker(in: ctx, rect: CGRect(x: 82, y: 50.5, width: 15, height: 4.5),
+                           radius: 2.2, rgb: (0.80, 0.24, 0.18))
+        drawRecessedMarker(in: ctx, rect: CGRect(x: 10.5, y: 656, width: 6.5, height: 9.0),
+                           radius: 1.8, rgb: (0.88, 0.65, 0.16))
+        drawRecessedMarker(in: ctx, rect: CGRect(x: 34, y: 834, width: 14, height: 4.0),
+                           radius: 2.0, rgb: (0.22, 0.36, 0.56))
+    }
+
+    private static func drawRecessedMarker(
+        in ctx: CGContext,
         rect: CGRect,
-        stealth: Bool
+        radius: CGFloat,
+        rgb: (CGFloat, CGFloat, CGFloat)
     ) {
-        let base = palette.shell
-        let swatches: [OneTapeTransportMaterial.RGB] = stealth
-            ? [
-                base.mixed(with: .init(0.07, 0.075, 0.08), fraction: 0.65),
-                base.mixed(with: .init(0.14, 0.15, 0.16), fraction: 0.55),
-                base.mixed(with: .init(0.22, 0.23, 0.25), fraction: 0.55),
-                base.mixed(with: .init(0.30, 0.32, 0.34), fraction: 0.50)
-            ]
-            : [
-                base.mixed(with: .init(0.20, 0.24, 0.18), fraction: 0.65),
-                base.mixed(with: .init(0.36, 0.42, 0.31), fraction: 0.65),
-                base.mixed(with: .init(0.56, 0.54, 0.43), fraction: 0.60),
-                base.mixed(with: .init(0.14, 0.15, 0.13), fraction: 0.65)
-            ]
+        let p = CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil)
+        ctx.setFillColor(red: rgb.0, green: rgb.1, blue: rgb.2, alpha: 1.0)
+        ctx.addPath(p)
+        ctx.fillPath()
+        ctx.setStrokeColor(red: 0, green: 0, blue: 0, alpha: 0.28)
+        ctx.setLineWidth(0.7)
+        ctx.addPath(p)
+        ctx.strokePath()
+    }
 
-        context.fill(Path(rect), with: .color(swatches[0].materialColor))
+    private static func drawChassisScrews(in ctx: CGContext) {
+        let positions: [CGPoint] = [
+            CGPoint(x: 96, y: 20), CGPoint(x: 300, y: 20),
+            CGPoint(x: 378, y: 46), CGPoint(x: 11, y: 348),
+            CGPoint(x: 14, y: 818), CGPoint(x: 372, y: 834)
+        ]
+        let cs = CGColorSpaceCreateDeviceRGB()
+        let screwColors = [
+            CGColor(colorSpace: cs, components: [0.88, 0.88, 0.87, 1])!,
+            CGColor(colorSpace: cs, components: [0.54, 0.55, 0.56, 1])!,
+            CGColor(colorSpace: cs, components: [0.74, 0.74, 0.73, 1])!
+        ] as CFArray
+        let screwGrad = CGGradient(colorsSpace: cs, colors: screwColors, locations: [0, 0.55, 1])
 
-        // Multi-scale crisp pixelated blocks give authentic digital camo clustering.
-        let coarse: CGFloat = 22
-        let cols = Int(ceil(rect.width / coarse))
-        let rows = Int(ceil(rect.height / coarse))
-        for r in 0..<rows {
-            for c in 0..<cols {
-                let cluster = noise((r / 2) * 37 + (c / 2) * 19 + (stealth ? 9 : 3))
-                let local = noise(r * 53 + c * 29 + 17)
-                let idx = min(swatches.count - 1, Int((cluster * 0.65 + local * 0.35) * Double(swatches.count)))
-                let cell = CGRect(x: CGFloat(c) * coarse, y: CGFloat(r) * coarse, width: coarse + 0.5, height: coarse + 0.5)
-                context.fill(Path(cell), with: .color(swatches[idx].materialColor))
+        for center in positions {
+            let well = CGRect(x: center.x - 4.4, y: center.y - 4.4, width: 8.8, height: 8.8)
+            ctx.setFillColor(red: 0, green: 0, blue: 0, alpha: 0.24)
+            ctx.fillEllipse(in: well)
+
+            let head = CGRect(x: center.x - 3.5, y: center.y - 3.5, width: 7.0, height: 7.0)
+            ctx.saveGState()
+            ctx.addEllipse(in: head)
+            ctx.clip()
+            if let screwGrad {
+                ctx.drawLinearGradient(
+                    screwGrad,
+                    start: CGPoint(x: head.minX, y: head.minY),
+                    end: CGPoint(x: head.maxX, y: head.maxY),
+                    options: []
+                )
             }
-        }
+            ctx.restoreGState()
 
-        // Fine pixel micro-patches breaking straight block edges.
-        let fine: CGFloat = 9.5
-        for i in 0..<320 {
-            let fx = floor(noise(i * 13 + 1) * Double(rect.width / fine)) * fine
-            let fy = floor(noise(i * 13 + 2) * Double(rect.height / fine)) * fine
-            let w = (noise(i * 13 + 3) > 0.5 ? 2.0 : 1.0) * fine
-            let h = (noise(i * 13 + 4) > 0.6 ? 2.0 : 1.0) * fine
-            let idx = Int(noise(i * 13 + 5) * Double(swatches.count)) % swatches.count
-            context.fill(Path(CGRect(x: fx, y: fy, width: w, height: h)),
-                         with: .color(swatches[idx].materialColor))
-        }
+            ctx.setStrokeColor(red: 0, green: 0, blue: 0, alpha: 0.36)
+            ctx.setLineWidth(0.55)
+            ctx.strokeEllipse(in: head)
 
-        // Subtle matte directional lighting so the polymer reads three-dimensional.
-        context.fill(
-            Path(rect),
-            with: .linearGradient(
-                Gradient(colors: [.white.opacity(stealth ? 0.08 : 0.10), .clear, .black.opacity(0.24)]),
-                startPoint: .zero,
-                endPoint: CGPoint(x: rect.width, y: rect.height)
-            )
-        )
-    }
-
-    // MARK: - Sticker Bomb (贴纸拼贴)
-
-    private struct DecalSpec {
-        let label: String
-        let x: CGFloat
-        let y: CGFloat
-        let width: CGFloat
-        let height: CGFloat
-        let degrees: Double
-        let bg: Color
-        let fg: Color
-        let capsule: Bool
-    }
-
-    private static func drawStickerBomb(
-        in context: inout GraphicsContext,
-        palette: OneTapeBodyMaterialPalette,
-        rect: CGRect
-    ) {
-        context.fill(Path(rect), with: .color(palette.shell.materialColor))
-
-        // Curated vintage audio/cassette decals placed specifically in the
-        // visible frame around the cassette pocket, keys and LCD readout.
-        let decals: [DecalSpec] = [
-            // Top frame strip
-            .init(label: "HI-FI", x: 118, y: 26, width: 64, height: 24, degrees: -8,
-                  bg: Color(red: 0.94, green: 0.30, blue: 0.20), fg: .white, capsule: false),
-            .init(label: "STEREO", x: 184, y: 40, width: 78, height: 22, degrees: 5,
-                  bg: Color(red: 0.98, green: 0.78, blue: 0.18), fg: .black, capsule: true),
-            .init(label: "C-90", x: 256, y: 24, width: 58, height: 24, degrees: -4,
-                  bg: Color(red: 0.16, green: 0.56, blue: 0.96), fg: .white, capsule: false),
-            .init(label: "120µs", x: 318, y: 42, width: 66, height: 22, degrees: 11,
-                  bg: Color(red: 0.14, green: 0.72, blue: 0.48), fg: .black, capsule: true),
-            .init(label: "SIDE A", x: 364, y: 20, width: 62, height: 20, degrees: -14,
-                  bg: Color(red: 0.96, green: 0.94, blue: 0.88), fg: .black, capsule: false),
-
-            // Left & right narrow side margins peeking out around cassette
-            .init(label: "REC ●", x: 12, y: 170, width: 56, height: 20, degrees: -86,
-                  bg: Color(red: 0.90, green: 0.18, blue: 0.24), fg: .white, capsule: true),
-            .init(label: "ANALOG", x: 382, y: 215, width: 68, height: 20, degrees: 88,
-                  bg: Color(red: 0.98, green: 0.80, blue: 0.22), fg: .black, capsule: false),
-            .init(label: "TAPE", x: 11, y: 425, width: 54, height: 20, degrees: 92,
-                  bg: Color(red: 0.58, green: 0.36, blue: 0.94), fg: .white, capsule: false),
-            .init(label: "LO-FI", x: 383, y: 478, width: 58, height: 20, degrees: -87,
-                  bg: Color(red: 0.18, green: 0.78, blue: 0.72), fg: .black, capsule: true),
-
-            // Lower deck bridge & bottom corners around LCD + transport buttons
-            .init(label: "PLAY ▶", x: 58, y: 634, width: 70, height: 22, degrees: -6,
-                  bg: Color(red: 0.98, green: 0.48, blue: 0.14), fg: .black, capsule: true),
-            .init(label: "ONE TAPE", x: 152, y: 636, width: 86, height: 21, degrees: 3,
-                  bg: Color(red: 0.96, green: 0.95, blue: 0.90), fg: .black, capsule: false),
-            .init(label: "DOLBY", x: 244, y: 635, width: 68, height: 21, degrees: -5,
-                  bg: Color(red: 0.18, green: 0.44, blue: 0.92), fg: .white, capsule: false),
-            .init(label: "CHROME", x: 332, y: 636, width: 74, height: 21, degrees: 7,
-                  bg: Color(red: 0.95, green: 0.34, blue: 0.56), fg: .white, capsule: true),
-
-            // Between keys and LCD + bottom margin
-            .init(label: "CLUB", x: 86, y: 702, width: 52, height: 20, degrees: 84,
-                  bg: Color(red: 0.98, green: 0.82, blue: 0.20), fg: .black, capsule: false),
-            .init(label: "MIX", x: 16, y: 768, width: 46, height: 22, degrees: -18,
-                  bg: Color(red: 0.22, green: 0.78, blue: 0.46), fg: .black, capsule: true),
-            .init(label: "★ STEREO ★", x: 146, y: 834, width: 92, height: 22, degrees: -3,
-                  bg: Color(red: 0.94, green: 0.28, blue: 0.22), fg: .white, capsule: true),
-            .init(label: "TYPE II", x: 246, y: 833, width: 72, height: 21, degrees: 5,
-                  bg: Color(red: 0.96, green: 0.94, blue: 0.88), fg: .black, capsule: false),
-            .init(label: "45 RPM", x: 334, y: 830, width: 68, height: 22, degrees: -9,
-                  bg: Color(red: 0.26, green: 0.58, blue: 0.96), fg: .white, capsule: true),
-            .init(label: "BPM", x: 378, y: 740, width: 48, height: 20, degrees: 86,
-                  bg: Color(red: 0.98, green: 0.54, blue: 0.18), fg: .black, capsule: false)
-        ]
-
-        for decal in decals {
-            var local = context
-            local.translateBy(x: decal.x, y: decal.y)
-            local.rotate(by: .degrees(decal.degrees))
-            let box = CGRect(x: -decal.width / 2, y: -decal.height / 2, width: decal.width, height: decal.height)
-            let radius = decal.capsule ? decal.height / 2 : 4.0
-            let borderPath = Path(roundedRect: box.insetBy(dx: -2.2, dy: -2.2), cornerRadius: radius + 2.0)
-            let fillPath = Path(roundedRect: box, cornerRadius: radius)
-
-            // Crisp white die-cut sticker border + subtle shadow.
-            local.fill(borderPath.offsetBy(dx: 0.8, dy: 1.4), with: .color(.black.opacity(0.38)))
-            local.fill(borderPath, with: .color(Color(white: 0.96)))
-            local.fill(fillPath, with: .color(decal.bg))
-            let text = Text(decal.label)
-                .font(.system(size: 8.8, weight: .black, design: .rounded))
-                .tracking(0.5)
-                .foregroundStyle(decal.fg)
-            local.draw(local.resolve(text), at: .zero, anchor: .center)
-        }
-
-        // Subtle satin laminate sheen over the collage.
-        context.fill(
-            Path(rect),
-            with: .linearGradient(
-                Gradient(colors: [.white.opacity(0.10), .clear, .black.opacity(0.16)]),
-                startPoint: .zero,
-                endPoint: CGPoint(x: rect.width, y: rect.height)
-            )
-        )
-    }
-
-    // MARK: - Grey Tracks (灰轨纹理)
-
-    private static func drawGreyTracks(
-        in context: inout GraphicsContext,
-        palette: OneTapeBodyMaterialPalette,
-        rect: CGRect
-    ) {
-        let base = palette.shell
-        context.fill(
-            Path(rect),
-            with: .linearGradient(
-                Gradient(colors: [
-                    base.mixed(with: .init(1, 1, 1), fraction: 0.16).materialColor,
-                    base.materialColor,
-                    base.mixed(with: .init(0, 0, 0), fraction: 0.22).materialColor
-                ]),
-                startPoint: .zero,
-                endPoint: CGPoint(x: rect.width, y: rect.height)
-            )
-        )
-
-        // Machined parallel horizontal magnetic-track grooves with shadow/highlight ribs.
-        let pitch: CGFloat = 8.0
-        for y in stride(from: CGFloat(6), to: rect.height, by: pitch) {
-            var groove = Path()
-            groove.move(to: CGPoint(x: 0, y: y))
-            groove.addLine(to: CGPoint(x: rect.width, y: y))
-            context.stroke(groove, with: .color(.black.opacity(0.24)), lineWidth: 1.4)
-
-            var ridge = Path()
-            ridge.move(to: CGPoint(x: 0, y: y + 1.3))
-            ridge.addLine(to: CGPoint(x: rect.width, y: y + 1.3))
-            context.stroke(ridge, with: .color(.white.opacity(0.18)), lineWidth: 0.75)
-        }
-
-        // Subtle vertical milled guide rails.
-        for x in [92.0, 301.0] {
-            var rail = Path()
-            rail.move(to: CGPoint(x: x, y: 0))
-            rail.addLine(to: CGPoint(x: x, y: rect.height))
-            context.stroke(rail, with: .color(.black.opacity(0.18)), lineWidth: 1.0)
-            context.stroke(rail.offsetBy(dx: 1, dy: 0), with: .color(.white.opacity(0.16)), lineWidth: 0.6)
+            ctx.setStrokeColor(red: 0, green: 0, blue: 0, alpha: 0.56)
+            ctx.setLineWidth(0.75)
+            ctx.setLineCap(.round)
+            ctx.move(to: CGPoint(x: center.x - 1.8, y: center.y))
+            ctx.addLine(to: CGPoint(x: center.x + 1.8, y: center.y))
+            ctx.move(to: CGPoint(x: center.x, y: center.y - 1.8))
+            ctx.addLine(to: CGPoint(x: center.x, y: center.y + 1.8))
+            ctx.strokePath()
         }
     }
 
-    // MARK: - Clean Plates (极简面板)
-
-    private static func drawCleanPlates(
-        in context: inout GraphicsContext,
-        palette: OneTapeBodyMaterialPalette,
-        rect: CGRect
-    ) {
-        let base = palette.shell
-        context.fill(
-            Path(rect),
-            with: .linearGradient(
-                Gradient(colors: [
-                    base.mixed(with: .init(1, 1, 1), fraction: 0.12).materialColor,
-                    base.materialColor,
-                    base.mixed(with: .init(0, 0, 0), fraction: 0.08).materialColor
-                ]),
-                startPoint: .zero,
-                endPoint: CGPoint(x: rect.width, y: rect.height)
-            )
-        )
-
-        // Modular ceramic-matte sub-plates separated by razor-fine recessed seams.
-        let lowerPlate = CGRect(x: 0, y: 632, width: rect.width, height: rect.height - 632)
-        context.fill(
-            Path(lowerPlate),
-            with: .color(base.mixed(with: .init(0, 0, 0), fraction: 0.045).materialColor)
-        )
-
-        let seams: [(CGPoint, CGPoint)] = [
-            (CGPoint(x: 0, y: 632), CGPoint(x: rect.width, y: 632)),
-            (CGPoint(x: 91, y: 632), CGPoint(x: 91, y: rect.height)),
-            (CGPoint(x: 0, y: 60), CGPoint(x: rect.width, y: 60)),
-            (CGPoint(x: 294, y: 0), CGPoint(x: 294, y: 60))
-        ]
-        for (a, b) in seams {
-            var dark = Path()
-            dark.move(to: a)
-            dark.addLine(to: b)
-            context.stroke(dark, with: .color(.black.opacity(0.24)), lineWidth: 1.1)
-
-            let dx: CGFloat = a.x == b.x ? 1.0 : 0
-            let dy: CGFloat = a.y == b.y ? 1.0 : 0
-            context.stroke(dark.offsetBy(dx: dx, dy: dy), with: .color(.white.opacity(0.55)), lineWidth: 0.8)
+    private static func roundedPolyline(_ points: [CGPoint], radius: CGFloat) -> CGPath {
+        let path = CGMutablePath()
+        guard points.count >= 2 else { return path }
+        path.move(to: points[0])
+        if points.count == 2 {
+            path.addLine(to: points[1])
+            return path
         }
-
-        // Matte mineral grain for tactile ceramic finish.
-        for index in 0..<950 {
-            let x = noise(index * 3) * Double(rect.width)
-            let y = noise(index * 3 + 1) * Double(rect.height)
-            let dot = CGRect(x: x, y: y, width: 0.45, height: 0.45)
-            context.fill(Path(ellipseIn: dot), with: .color(.black.opacity(0.035)))
+        for i in 1..<(points.count - 1) {
+            let prev = points[i - 1]
+            let corner = points[i]
+            let next = points[i + 1]
+            let v1 = CGVector(dx: prev.x - corner.x, dy: prev.y - corner.y)
+            let v2 = CGVector(dx: next.x - corner.x, dy: next.y - corner.y)
+            let len1 = hypot(v1.dx, v1.dy)
+            let len2 = hypot(v2.dx, v2.dy)
+            guard len1 > 0.1, len2 > 0.1 else {
+                path.addLine(to: corner)
+                continue
+            }
+            let r = min(radius, len1 * 0.45, len2 * 0.45)
+            let p1 = CGPoint(x: corner.x + v1.dx / len1 * r, y: corner.y + v1.dy / len1 * r)
+            let p2 = CGPoint(x: corner.x + v2.dx / len2 * r, y: corner.y + v2.dy / len2 * r)
+            path.addLine(to: p1)
+            path.addQuadCurve(to: p2, control: corner)
         }
-    }
-
-    private static func noise(_ index: Int) -> Double {
-        var bits = UInt64(truncatingIfNeeded: index) &+ 0x9E3779B97F4A7C15
-        bits = (bits ^ (bits >> 30)) &* 0xBF58476D1CE4E5B9
-        bits = (bits ^ (bits >> 27)) &* 0x94D049BB133111EB
-        return Double((bits ^ (bits >> 31)) & 65535) / 65535
+        path.addLine(to: points[points.count - 1])
+        return path
     }
 }

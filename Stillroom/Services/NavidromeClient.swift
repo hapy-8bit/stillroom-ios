@@ -64,7 +64,7 @@ actor NavidromeClient {
         fields["t"] = token
         fields["s"] = salt
         fields["v"] = "1.16.1"
-        fields["c"] = "OneTape"
+        fields["c"] = "OneCassette"
         fields["f"] = "json"
         parts.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
         guard let url = parts.url else { throw NavidromeError.invalidAddress }

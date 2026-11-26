@@ -10,20 +10,43 @@ struct OneTapeBodySurface: View {
     var artwork: UIImage? = nil
     var tilt: CGSize = OneTapeTiltMonitor.restingTilt
     var energy: Double = 0
+    var animatePulse: Bool = false
 
     private var finish: OneTapeBodyFinish {
         OneTapeBodyFinish(appearance: appearance, artworkColor: artworkColor)
+    }
+
+    private var isGraphiteMetal: Bool {
+        appearance.bodyMaterial == nil && appearance.bodyStyle == .graphite && appearance.bodyColor == .black
     }
 
     var body: some View {
         ZStack {
             base
             if let material = appearance.bodyMaterial {
-                OneTapeMaterialShell(material: material, color: appearance.bodyColor, tilt: tilt, energy: energy)
-                    .mask {
-                        OneTapeBodyShellMask()
-                            .fill(.white, style: FillStyle(eoFill: true))
-                    }
+                OneTapeMaterialShell(
+                    material: material,
+                    color: appearance.bodyColor,
+                    tilt: tilt,
+                    energy: energy,
+                    animatePulse: animatePulse
+                )
+                .mask {
+                    OneTapeBodyShellMask()
+                        .fill(.white, style: FillStyle(eoFill: true))
+                }
+            } else if isGraphiteMetal {
+                // Rebuilt Cassette 1.0.5 Graphite: GPU satin brushed titanium shell
+                // + shared 3D chassis molding instead of over-brightened black photo.
+                ZStack {
+                    OneTapeMetalBodyView(program: .graphite, tilt: tilt)
+                        .frame(width: 393, height: 852)
+                    OneTapeBodyMoldOverlay(isDarkShell: false, tilt: tilt)
+                }
+                .mask {
+                    OneTapeBodyShellMask()
+                        .fill(.white, style: FillStyle(eoFill: true))
+                }
             } else if !finish.isOriginalBlack {
                 base
                     .saturation(0)
@@ -40,7 +63,8 @@ struct OneTapeBodySurface: View {
                            let artwork {
                             Image(uiImage: artwork).resizable().scaledToFill()
                                 .frame(width: 393, height: 852).clipped()
-                                .opacity(0.32).blendMode(.softLight)
+                                .blur(radius: 8)
+                                .opacity(0.40).blendMode(.softLight)
                         }
                     }
                     .mask {
@@ -83,11 +107,9 @@ struct OneTapeBodySurface: View {
             shell.translateBy(x: targetX - 83.5 * horizontalScale, y: 0)
             shell.scaleBy(x: horizontalScale, y: 1)
             shell.draw(source, in: bounds)
-
         }
         .frame(width: 393, height: 852)
     }
-
 }
 
 /// Shared only by drawing layers; changing a finish never touches media state.
@@ -104,6 +126,9 @@ struct OneTapeBodyFinish {
         if let material = appearance.bodyMaterial {
             return material.palette(color: appearance.bodyColor).shell.materialColor
         }
+        if appearance.bodyStyle == .graphite && appearance.bodyColor == .black {
+            return Color(red: 0.54, green: 0.555, blue: 0.565)
+        }
         if appearance.bodyStyle == .graphite { return tint }
         let rgb = OneTapeTransportMaterial(appearance: appearance, artworkColor: artworkColor).face
         return Color(red: rgb.red, green: rgb.green, blue: rgb.blue)
@@ -118,7 +143,7 @@ struct OneTapeBodyFinish {
         }
         switch appearance.bodyStyle {
         case .black: return .black
-        case .graphite: return Color(red: 0.57, green: 0.59, blue: 0.58)
+        case .graphite: return Color(red: 0.56, green: 0.57, blue: 0.58)
         case .adaptive, .cover:
             let rgb = OneTapeTransportMaterial(appearance: appearance, artworkColor: artworkColor).face
             return Color(red: rgb.red, green: rgb.green, blue: rgb.blue)
@@ -171,7 +196,7 @@ private struct OneTapeBodyShellMask: Shape {
 }
 
 /// Leaf observer so tilt and audio-energy updates only redraw dynamic body shells
-/// (Holo Foil, Silver Foil, Disco Mirror, Circuit Glow) without rebuilding root chrome.
+/// without rebuilding root chrome or affecting playback time.
 struct OneTapeLiveBodySurface: View {
     let appearance: OneTapeAppearance
     var artworkColor: OneTapeTransportMaterial.RGB? = nil
@@ -180,7 +205,7 @@ struct OneTapeLiveBodySurface: View {
     var visualization: AudioVisualizationSignal? = nil
 
     var body: some View {
-        if let visualization, appearance.bodyMaterial == .disco || appearance.bodyMaterial == .circuitGlow {
+        if appearance.bodyMaterial?.usesLiveAnimation == true {
             OneTapeAudioReactiveBodySurface(
                 appearance: appearance,
                 artworkColor: artworkColor,
@@ -204,7 +229,42 @@ private struct OneTapeAudioReactiveBodySurface: View {
     var artworkColor: OneTapeTransportMaterial.RGB? = nil
     var artwork: UIImage? = nil
     let tilt: CGSize
+    var visualization: AudioVisualizationSignal?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        let shouldAnimate = !reduceMotion && scenePhase == .active
+        if let visualization {
+            OneTapeAudioSignalBodyBridge(
+                appearance: appearance,
+                artworkColor: artworkColor,
+                artwork: artwork,
+                tilt: tilt,
+                visualization: visualization,
+                animatePulse: shouldAnimate
+            )
+        } else {
+            OneTapeBodySurface(
+                appearance: appearance,
+                artworkColor: artworkColor,
+                artwork: artwork,
+                tilt: tilt,
+                animatePulse: shouldAnimate
+            )
+        }
+    }
+}
+
+/// Feeds audio energy into the GPU circuit surface while the Metal host view runs
+/// its own `CADisplayLink` pulse phase — zero per-frame SwiftUI view rebuilds.
+private struct OneTapeAudioSignalBodyBridge: View {
+    let appearance: OneTapeAppearance
+    var artworkColor: OneTapeTransportMaterial.RGB?
+    var artwork: UIImage?
+    let tilt: CGSize
     @ObservedObject var visualization: AudioVisualizationSignal
+    let animatePulse: Bool
 
     var body: some View {
         let energy = Double(max(visualization.frame.rms, visualization.frame.peak * 0.72))
@@ -213,8 +273,8 @@ private struct OneTapeAudioReactiveBodySurface: View {
             artworkColor: artworkColor,
             artwork: artwork,
             tilt: tilt,
-            energy: energy
+            energy: energy,
+            animatePulse: animatePulse
         )
     }
 }
-

@@ -25,7 +25,7 @@ struct OneTapeScreenCanvas: View {
                     }
                     OneTapeScreenArt.finish(context, size: size)
                 }
-            case .lcd, .name, .fox: Color.clear
+            default: Color.clear
             }
         }
     }

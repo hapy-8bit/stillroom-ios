@@ -13,6 +13,8 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     // appearance records readable without migrating or overwriting them.
     var bodyMaterial: OneTapeBodyMaterial? = nil
     var reelColor: ReelColor? = nil
+    var reelStyle: ReelStyle = .classic
+    var reelFinish: ReelFinish = .silver
     var glassOpen = true
     var customDrawingID: UUID? = nil
     var customArtworkID: UUID? = nil
@@ -34,8 +36,13 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
         screenStyle = try container.decodeIfPresent(ScreenStyle.self, forKey: .screenStyle) ?? .lcd
         doodleStyle = try container.decodeIfPresent(DoodleStyle.self, forKey: .doodleStyle) ?? .none
         bodyColor = try container.decodeIfPresent(BodyColor.self, forKey: .bodyColor) ?? .black
-        bodyMaterial = try container.decodeIfPresent(OneTapeBodyMaterial.self, forKey: .bodyMaterial)
+        let decodedMaterial = try container.decodeIfPresent(OneTapeBodyMaterial.self, forKey: .bodyMaterial)
+        // Legacy non-Cassette glass/metal placeholders were retired; map cleanly
+        // back to the classic shell without discarding any other saved choices.
+        bodyMaterial = decodedMaterial?.isRetiredLegacy == true ? nil : decodedMaterial
         reelColor = try container.decodeIfPresent(ReelColor.self, forKey: .reelColor)
+        reelStyle = try container.decodeIfPresent(ReelStyle.self, forKey: .reelStyle) ?? .classic
+        reelFinish = try container.decodeIfPresent(ReelFinish.self, forKey: .reelFinish) ?? .silver
         glassOpen = try container.decodeIfPresent(Bool.self, forKey: .glassOpen) ?? true
         customDrawingID = try container.decodeIfPresent(UUID.self, forKey: .customDrawingID)
         customArtworkID = try container.decodeIfPresent(UUID.self, forKey: .customArtworkID)
@@ -74,6 +81,14 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
         bodyColor = .black
     }
 
+    mutating func selectBodyColor(_ color: BodyColor) {
+        // Match Cassette 1.0.5 `PhoneBodyPaint`: paint swatches coat the classic
+        // chassis rather than muddying signature foil, circuit, or camo finishes.
+        bodyMaterial = nil
+        bodyStyle = .black
+        bodyColor = color
+    }
+
     var isBrandPrintVisible: Bool {
         printStyle == .brand
             && doodleStyle == .none
@@ -83,7 +98,8 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     }
 
     var needsMotionTilt: Bool {
-        tapeFoilStyle != nil || (bodyMaterial?.usesTilt ?? false)
+        let graphiteMetal = bodyMaterial == nil && bodyStyle == .graphite && bodyColor == .black
+        return tapeFoilStyle != nil || graphiteMetal || (bodyMaterial?.usesTilt ?? false)
     }
 
     mutating func selectIllustration(_ style: DoodleStyle) {
@@ -158,7 +174,7 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
     // Build37 used this key for a cosmetic switch. Keep its stored identity
     // while making the picker and physical sliding cover one authoritative value.
     private enum CodingKeys: String, CodingKey {
-        case tapeStyle, printStyle, bodyStyle, screenStyle, doodleStyle, bodyColor, bodyMaterial, reelColor, customDrawingID, customArtworkID
+        case tapeStyle, printStyle, bodyStyle, screenStyle, doodleStyle, bodyColor, bodyMaterial, reelColor, reelStyle, reelFinish, customDrawingID, customArtworkID
         case tapeFoilStyle, trackListEnabled
         case glassOpen = "glassEnabled"
     }
@@ -182,6 +198,7 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
         var isSculpted: Bool { Self.sculpted.contains(self) }
         var isBespoke: Bool { Self.bespoke.contains(self) }
         var usesLightInk: Bool { self == .graphite || self == .clear || self == .armature || self == .twinArc }
+        var showsExposedMetalReels: Bool { self == .clear || self == .window }
     }
 
     enum PrintStyle: String, Codable, CaseIterable, Identifiable, Sendable {
@@ -196,7 +213,8 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
 
     enum ScreenStyle: String, Codable, CaseIterable, Identifiable, Sendable {
         case lcd, fluid, oscilloscope, sand, dunes, meters, water, iron, name, fox
-        case ink, rain, trails, waterfall
+        case ink, smoke, growth, harmonograph, cover, waterfall
+        case rain, trails
         var id: String { rawValue }
     }
 
@@ -241,6 +259,18 @@ struct OneTapeAppearance: Codable, Equatable, Sendable {
 
     enum ReelColor: String, Codable, CaseIterable, Identifiable, Sendable {
         case white, black, orange, crimson, blue
+        var id: String { rawValue }
+    }
+
+    /// Exposed metallic reel flange cutout geometries matching Cassette 1.0.5 (`ReelStyle`).
+    enum ReelStyle: String, Codable, CaseIterable, Identifiable, Sendable {
+        case classic, rounded, solid
+        var id: String { rawValue }
+    }
+
+    /// Anodized aluminum flange finishes matching Cassette 1.0.5 (`ReelColour`).
+    enum ReelFinish: String, Codable, CaseIterable, Identifiable, Sendable {
+        case silver, ruby, gold, cobalt, graphite, orange, emerald
         var id: String { rawValue }
     }
 }

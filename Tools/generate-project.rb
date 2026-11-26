@@ -29,7 +29,7 @@ def populate(group, absolute, app)
       populate(group.new_group(name, name), path, app)
     else
       reference = group.new_file(name)
-      name.end_with?('.swift') ? app.source_build_phase.add_file_reference(reference) : app.resources_build_phase.add_file_reference(reference)
+      name.end_with?('.swift', '.metal') ? app.source_build_phase.add_file_reference(reference) : app.resources_build_phase.add_file_reference(reference)
     end
   end
 end

@@ -48,7 +48,7 @@ struct OneTapePlayerFace: View {
     private func face(scale: CGFloat, windowSize: CGSize) -> some View {
         ZStack(alignment: .topLeading) {
             Group {
-                if let tiltMonitor, appearance.bodyMaterial?.usesTilt == true {
+                if let tiltMonitor, appearance.needsMotionTilt {
                     OneTapeLiveBodySurface(
                         appearance: appearance,
                         artworkColor: artworkColor,

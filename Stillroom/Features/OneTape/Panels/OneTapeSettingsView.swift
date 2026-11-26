@@ -71,7 +71,7 @@ struct OneTapeSettingsView: View {
                 if isRestoringPurchases { ProgressView().tint(.white) }
             }
             if let purchaseIssue { footnote(purchaseIssue) }
-            footnote("使用购买时的 App Store 账户恢复 One Vinyl Pro。")
+            footnote("使用购买时的 App Store 账户恢复 One Cassette Pro。")
         }
     }
 
@@ -193,7 +193,7 @@ struct OneTapeSettingsView: View {
     }
 
     private var studio: some View {
-        settingsSection("ONE TAPE STUDIO") {
+        settingsSection("ONE CASSETTE STUDIO") {
             HStack {
                 Text("所有外观")
                     .font(.system(size: 17))
