@@ -391,10 +391,9 @@ struct OneTapeLibraryView: View {
         let availableWidth = max(0, width - 32)
         return ZStack(alignment: .leading) {
             if !isSearching {
-                HStack(spacing: max(8, width * 0.025)) {
+                HStack(spacing: max(8, width * 0.065)) {
                     filterMenu
                     sectionPicker
-                    layoutToggleButton
                     Color.clear.frame(width: 46, height: 46)
                 }
                 .foregroundStyle(.white.opacity(0.68))
@@ -422,33 +421,6 @@ struct OneTapeLibraryView: View {
         // Keep one search capsule anchored at the right. It grows leftward as
         // the controls leave, then collapses back into the same search button.
         .clipped()
-    }
-
-    private var layoutToggleButton: some View {
-        let activeLayout = pendingLayout ?? layout
-        let nextLayout: OneTapeLibraryLayout = activeLayout == .shelf ? .grid : .shelf
-        return Button {
-            selectLayout(nextLayout)
-        } label: {
-            Group {
-                if reduceMotion {
-                    Image(systemName: activeLayout == .shelf ? "square.grid.3x2" : "rectangle.stack")
-                } else {
-                    Image(systemName: activeLayout == .shelf ? "square.grid.3x2" : "rectangle.stack")
-                        .contentTransition(.symbolEffect(.replace))
-                }
-            }
-            .font(.system(size: 16.5, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.76))
-            .frame(width: 46, height: 46)
-            .background { LibraryCapsuleSurface() }
-            .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .disabled(isLayoutReloading)
-        .sensoryFeedback(.selection, trigger: layout)
-        .accessibilityLabel(activeLayout == .shelf ? "切换至平铺视图" : "切换至翻箱视图")
-        .accessibilityIdentifier("library.layoutToggle")
     }
 
     private var layoutPicker: some View {
